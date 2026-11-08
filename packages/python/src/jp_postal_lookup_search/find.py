@@ -24,38 +24,29 @@ def lookup_address_by_postal_code_kana(postal_code: str) -> str:
 
 def search_postal_code_by_address(address: str) -> str:
   query_map = address_map.keys()
-  step = "pref"
+  # step: 0-prefecture 1-city 2-town
+  step = 0
   i = 0
 
   # Use a sliding window approach + lenient matches
-  while i < len(address):
-    if step == "pref":
-      query_pref = address[i:i+3]
-      if query_pref in query_map:
-        step = "city"
-        query_map = address_map[query_pref]
-        i += len(query_pref)
-      else:
-        i += 1
-    elif step == "city":
-      for city in query_map:
-        query_city = address[i:i+len(city)]
-        if query_city == city:
-          step = "town"
-          query_map = query_map[city]
-          i += len(city)
-          break
-      else:
-        i += 1
-    elif step == "town":
-      for town in query_map:
-        query_town = address[i:]
-        if town.startswith(query_town):
-          return query_map[town]
+  while i < len(address): 
+    for key in query_map:
+      query = address[i:i+len(key)]
+
+      if key.startswith(query):
+        if step == 2:
+          return query_map[key]
+
+        query_map = address_map[key] if step == 0 else query_map[key]
+        step += 1
+        i += len(key)
+        break
+    else:
       i += 1
 
-  if step == "town":
+  if step == 2:
     return query_map.get("以下に掲載がない場合", "")
+
   return ""
 
 # TODO
