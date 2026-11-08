@@ -14,7 +14,7 @@ class AddressMapEntry:
   city: Dict[str, int]
 
 def split_postal_address(addr: str) -> tuple[str, str]:
-  return [addr[0:3], addr[3:]]
+  return addr[0:3], addr[3:]
 
 def extract_row(row: list[str], postal_code_map: Dict[str, PostalMapEntry], address_map: Dict[str, AddressMapEntry]) -> None:
   # 全国地方公共団体コード（JIS X0401、X0402）………　半角数字

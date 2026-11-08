@@ -1,0 +1,20 @@
+[project]
+name = "jp-postal-lookup-search"
+description = ""
+version = "0.1.0"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Justin Ang", email = "justinang13@gmail.com" }
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = []
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+"jp_postal_lookup_search.data" = ["*.json"]
