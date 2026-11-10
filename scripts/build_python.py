@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SOURCE = os.path.join(ROOT, "json")
 DESTINATION = os.path.join(
-    ROOT, "packages", "python", "src", "jp_postal_lookup_search", "data"
+  ROOT, "packages", "python", "src", "jp_postal_lookup_search", "data"
 )
 
 files = [
@@ -27,7 +27,7 @@ for filename in files:
 PYTHON_PACKAGE = os.path.join(ROOT, "packages", "python")
 
 subprocess.run(
-    [sys.executable, "-m", "build", "-v"],
-    cwd=PYTHON_PACKAGE,
-    check=True,
+  [sys.executable, "-m", "build", "-v"],
+  cwd=PYTHON_PACKAGE,
+  check=True,
 )

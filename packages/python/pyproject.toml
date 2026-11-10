@@ -3,7 +3,7 @@ name = "jp-postal-lookup-search"
 description = ""
 version = "0.1.0"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
 authors = [
     { name = "Justin Ang", email = "justinang13@gmail.com" }
 ]

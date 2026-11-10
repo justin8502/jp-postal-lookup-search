@@ -16,6 +16,37 @@ class AddressMapEntry:
 def split_postal_address(addr: str) -> tuple[str, str]:
   return addr[0:3], addr[3:]
 
+def merge_existing(existing: str, new: str) -> str:
+  # split and recombine existing data
+  existing_city_name, existing_town_name, existing_city_kata, existing_town_kata = existing.split("|")
+  _new_city_name, new_town_name, _new_city_kata, new_town_kata = new.split("|")
+
+  if existing_town_name == "以下に掲載がない場合": return existing
+
+  return "|".join([
+    existing_city_name,
+    existing_town_name + new_town_name,
+    existing_city_kata,
+    existing_town_kata + new_town_kata
+  ])
+
+def dedupe_address_map(address_map):
+  for prefecture, cities in address_map.items():
+    for city, towns in cities.items():
+      dedupe_town_map = {}
+
+      for key, code in sorted(
+        towns.items(),
+        key=lambda item: len(item[0]),
+        reverse=True
+      ):
+        if code not in dedupe_town_map.values():
+          dedupe_town_map[key] = code
+
+      address_map[prefecture][city] = dedupe_town_map
+
+  return address_map
+
 def extract_row(row: list[str], postal_code_map: Dict[str, PostalMapEntry], address_map: Dict[str, AddressMapEntry]) -> None:
   # 全国地方公共団体コード（JIS X0401、X0402）………　半角数字
   # （旧）郵便番号（5桁）………………………………………　半角数字
@@ -56,12 +87,21 @@ def extract_row(row: list[str], postal_code_map: Dict[str, PostalMapEntry], addr
   prefecture_condensed = f"{prefecture_name}|{prefecture_kata}"
   city_town_condensed = f"{city_name}|{town_name}|{city_kata}|{town_kata}"
 
-  postal_code_map.setdefault(prefecture_code, {
-                              "prefecture": prefecture_condensed
-                            })[city_town_code] = city_town_condensed
+  pref = postal_code_map.setdefault(prefecture_code, {
+    "prefecture": prefecture_condensed
+  })
+
+  if city_town_code in pref:
+    pref[city_town_code] = merge_existing(
+      pref[city_town_code], city_town_condensed
+    )
+  else:
+    pref[city_town_code] = city_town_condensed
+
+  recombined_town_key = pref[city_town_code].split("|")[1]
 
   address_map.setdefault(prefecture_name, {}) \
-             .setdefault(city_name, {})[town_name] = postal_code
+             .setdefault(city_name, {})[recombined_town_key] = postal_code
 
 def fetch_and_populate_maps() -> tuple[Dict[str, PostalMapEntry], Dict[str, AddressMapEntry]]:
   ken_all_url = get('https://www.post.japanpost.jp/service/search/zipcode/download/kogaki/zip/ken_all.zip')
@@ -111,9 +151,9 @@ def write_to_files(postal_code_map: Dict[str, PostalMapEntry], address_map: Dict
   script_dir = os.path.dirname(__file__)
 
   file_defaults = {
-      "ensure_ascii": False,
-      "separators": (",", ":"),
-      "indent": 2,
+    "ensure_ascii": False,
+    "separators": (",", ":"),
+    "indent": 2,
   }
 
   files = {
@@ -130,7 +170,8 @@ def write_to_files(postal_code_map: Dict[str, PostalMapEntry], address_map: Dict
 def main() -> None:
   postal_code_map, address_map = fetch_and_populate_maps()
   validate_data(postal_code_map, address_map)
+  dedupe_address_map(address_map)
   write_to_files(postal_code_map, address_map)
 
 if __name__ == "__main__":
-    main()
+  main()
