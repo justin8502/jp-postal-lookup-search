@@ -1,5 +1,5 @@
 from .data import postal_code_map, address_map
-from .util import extract_query_positional_arguments, normalize, split_postal_address, strip_paren
+from .utils import extract_query_positional_arguments, normalize, split_postal_address, strip_paren
 import re
 
 def lookup_address_by_postal_code(postal_code: str) -> str:
@@ -28,7 +28,7 @@ def search_postal_code_by_address(address: str) -> str:
 
   # Use a sliding window approach + lenient matches
   while i < len(address): 
-    final_check = {
+    special_notes = {
       "（次のビルを除く）": [],
       "（その他）": [],
       "一円": []
@@ -39,9 +39,9 @@ def search_postal_code_by_address(address: str) -> str:
       normalized_key = normalize(key)
       stripped_key = strip_paren(normalized_key)
       if "（次のビルを除く）" in key:
-        final_check["（次のビルを除く）"] += [key]
+        special_notes["（次のビルを除く）"] += [key]
       if "（その他）" in key:
-        final_check["（その他）"] += [key]
+        special_notes["（その他）"] += [key]
   
       if step == 2:
         if bool(re.search(r".+[市区町村]一円$", stripped_key)):
@@ -56,11 +56,11 @@ def search_postal_code_by_address(address: str) -> str:
         i += len(key)
         break
     else:
-      for suffix_type in final_check:
-        for final_key in final_check[suffix_type]:
-          normalized_query = normalize(address[i:i+len(final_key)-len(suffix_type)])
+      for note in special_notes:
+        for final_key in special_notes[note]:
+          normalized_query = normalize(address[i:i+len(final_key)-len(note)])
           stripped_query = strip_paren(normalized_query)
-          if normalized_query + suffix_type == final_key:
+          if normalized_query + note == final_key:
             return query_map[final_key]
       i += 1
 

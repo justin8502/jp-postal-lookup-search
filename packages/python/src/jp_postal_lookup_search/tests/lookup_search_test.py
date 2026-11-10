@@ -4,7 +4,7 @@ from jp_postal_lookup_search.find import (
   search_postal_code_by_address,
 )
 
-def test_postal_lookup():
+def test_bulk_postal_lookup():
   postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
                   "2310011", "3300802", "2730005", "6008001", "6048006", "5300001", 
                   "5420081", "6500021", "4600008", "4500002", "8100001", "7300031", 
@@ -13,27 +13,85 @@ def test_postal_lookup():
   for postal_code in postal_codes:
     address_lookup = lookup_address_by_postal_code(postal_code)
     postal_lookup = search_postal_code_by_address(address_lookup)
-    assert postal_lookup == postal_code
+    assert postal_lookup == postal_code, (
+      f"Mismatch for {postal_code}: "
+      f"expected {postal_code}, got {postal_lookup}"
+    )
 
-  # address_lookup = lookup_address_by_postal_code(postal_code)
-  postal_lookup = search_postal_code_by_address("北海道札幌市中央区北一条西１4丁目")
-  assert postal_lookup == "0600001"
-  postal_lookup = search_postal_code_by_address("東京都港区赤坂1丁目10-5")
-  assert postal_lookup == "1070052"
-  address_lookup = lookup_address_by_postal_code("0691214")
-  postal_lookup = search_postal_code_by_address(address_lookup)
-  ichien = search_postal_code_by_address("長野県北安曇郡松川村松川村一円")
-  print(ichien)
-  ichien = search_postal_code_by_address("長野県北安曇郡松川村")
-  print(ichien)
-  special = search_postal_code_by_address("静岡県磐田市大原（１番地～２０６１番地、２７５７番地～２７６８番地）")
-  print(special)
-  special = search_postal_code_by_address("静岡県磐田市大原2000番地")
-  print(special)
-  shiba = search_postal_code_by_address("東京都港区海岸１丁目ー５ー４")
-  print(shiba)
-  shiba = search_postal_code_by_address("東京都港区海岸1丁目ー5ー4")
-  print(shiba)
+def test_postal_lookup_kana():
+  postal_codes = ["1500001", "3300802", "2730005"]
+  lookup_kana = ["ﾄｳｷｮｳﾄｼﾌﾞﾔｸｼﾞﾝｸﾞｳﾏｴ", "ｻｲﾀﾏｹﾝｻｲﾀﾏｼｵｵﾐﾔｸﾐﾔﾁｮｳ", "ﾁﾊﾞｹﾝﾌﾅﾊﾞｼｼﾎﾝﾁｮｳ"]
+  
+  for postal_code, kana in zip(postal_codes, lookup_kana):
+    address_lookup_kana = lookup_address_by_postal_code_kana(postal_code)
+    assert address_lookup_kana == kana, (
+      f"Mismatch for {postal_code}: "
+      f"expected {kana}, got {address_lookup_kana}"
+    )
+
+def test_fuzzy_matching():
+  # テキスト正規化
+  # 東京都港区赤坂（次のビルを除く）
+  tokyo_text_variance = ["東京都港区赤坂1丁目10-5", "東京都港区赤坂１丁目ー１０-５", "東京都港区赤坂1丁目10-5藤田ビル"]
+  tokyo_text_variance_postal = "1070052"
+
+  for tokyo_addr in tokyo_text_variance:
+    postal_lookup = search_postal_code_by_address(tokyo_addr)
+    assert postal_lookup == tokyo_text_variance_postal
+
+  # 丁目マッチング
+  # 宮崎県日南市吾田東（５～１１丁目）
+  miyazaki_nichinan_agatahigashi_postal = "8892541"
+  miyazaki_nichinan_agatahigashi_chome = ["宮崎県日南市吾田東５丁目", "宮崎県日南市吾田東６丁目", "宮崎県日南市吾田東７丁目ー１ー２"]
+  for miyazaki_addr in miyazaki_nichinan_agatahigashi_chome:
+    postal_lookup = search_postal_code_by_address(miyazaki_addr)
+    assert miyazaki_nichinan_agatahigashi_postal == postal_lookup
+
+  # 北海道札幌市中央区北一条西（１～１９丁目）
+  hokkaido_fuzzy_postal = "0600001"
+  hokkaido_fuzzy = ["北海道札幌市中央区北一条西９丁目", "北海道札幌市中央区北一条西１4丁目", "北海道札幌市中央区北一条西１９丁目"]
+  
+  for hokkaido_addr in hokkaido_fuzzy:
+    postal_lookup = search_postal_code_by_address(hokkaido_addr)
+    assert postal_lookup == hokkaido_fuzzy_postal
+
+def test_special_cases():
+  # 一円
+  # 長野県北安曇郡松川村松川村一円
+  ichien_address = "長野県北安曇郡松川村松川村一円"
+  postal_lookup = search_postal_code_by_address(ichien_address)
+  ichien_address_short = "長野県北安曇郡松川村松川村"
+  postal_lookup_short = search_postal_code_by_address(ichien_address_short)
+  assert postal_lookup == "3998501"
+  assert postal_lookup == postal_lookup_short
+
+  # その他
+  tokyo_shinjuku_other = "東京都新宿区戸山公園"
+  postal_lookup = search_postal_code_by_address(tokyo_shinjuku_other)
+  assert postal_lookup == "1620052"
+
+  # 以下に掲載がない場合
+  fukuoka_koge_other = "福岡県築上郡上毛町近所医者"
+  postal_lookup = search_postal_code_by_address(fukuoka_koge_other)
+  assert postal_lookup == "8710900"
+
+def benchmark_lookup_find():
+  postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
+                  "2310011", "3300802", "2730005", "6008001"]
+
+  # perform 1000 lookups/finds
+  for _ in range(100):
+    for postal_code in postal_codes:
+      address_lookup = lookup_address_by_postal_code(postal_code)
+      postal_lookup = search_postal_code_by_address(address_lookup)
+      assert postal_lookup == postal_code, (
+        f"Mismatch for {postal_code}: "
+        f"expected {postal_code}, got {postal_lookup}"
+      )
 
 if __name__ == "__main__":
-  test_postal_lookup()
+  test_bulk_postal_lookup()
+  test_postal_lookup_kana()
+  test_fuzzy_matching()
+  test_special_cases()
+  benchmark_lookup_find()
