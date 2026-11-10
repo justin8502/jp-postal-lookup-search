@@ -1,20 +1,37 @@
 [project]
 name = "jp-postal-lookup-search"
-description = ""
+description = "Japanese postal code and address lookup with partial matching and normalization"
 version = "0.1.0"
 readme = "README.md"
 license = "MIT"
+requires-python = ">=3.13.1"
 authors = [
-    { name = "Justin Ang", email = "justinang13@gmail.com" }
+  { name = "Justin Ang", email = "justinang13@gmail.com" }
 ]
+keywords = [
+  "japan",
+  "postal-code",
+  "address",
+  "zipcode",
+  "ken-all",
+  "japanese-address"
+]
+
 dependencies = []
 
 [project.optional-dependencies]
-dev = []
+dev = [
+  "pytest",
+  "build",
+  "twine"
+]
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.setuptools.package-data]
-"jp_postal_lookup_search.data" = ["*.json"]
+jp_postal_lookup_search = ["data/*.json"]

@@ -2,5 +2,6 @@
 /packages/python/src/jp_postal_lookup_search/data/
 /packages/python/dist/
 /packages/python/src/jp_postal_lookup_search/__pycache__
+/packages/python/src/jp_postal_lookup_search/tests/__pycache__
 
 *.egg-info/

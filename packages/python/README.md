@@ -25,7 +25,7 @@ search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "650002
 
 部分一致・不完全な住所での検索や、ローカルでの上書き設定にも対応しています（Usageを参照）。
 
-# Methods
+## Methods
 
 | Method / 関数 | Description / 説明 | Example / 例 |
 |---|---|---|
@@ -33,11 +33,11 @@ search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "650002
 | `lookup_address_by_postal_code_kana(postal_code)` | Looks up address (in kana) associated with postal code / 郵便番号から住所のカナ表記を検索します。 | `lookup_address_by_postal_code_kana("6500021")` |
 | `search_postal_code_by_address(address)` | Matches address to a postal code / 住所から郵便番号を検索します。 | `search_postal_code_by_address("兵庫県神戸市中央区三宮町")` |
 
-# Usage
+## Usage
 
-# Development
+## Development
 
-The development of this project is guided by 3 principles:
+The development of this project is guided by 4 principles:
 1. No callbacks. Everything should be synchronous
 2. Reduce/Eliminate external dependencies
 3. Emphasize usability and extensibility
@@ -51,6 +51,6 @@ The development of this project is guided by 3 principles:
 3. 使いやすさと拡張性を重視
 4. 必要ファイル量減少
 
-# Future Goals
+## Future Goals
 
 EN Support, Github Actions Automatic Update/Build

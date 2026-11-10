@@ -4,8 +4,16 @@ import re
 
 def lookup_address_by_postal_code(postal_code: str) -> str:
   prefecture_code, city_town_code = split_postal_address(postal_code)
-  raw_pref = postal_code_map[prefecture_code]["prefecture"]
-  raw_city_town = postal_code_map[prefecture_code][city_town_code]
+  prefecture_data = postal_code_map.get(prefecture_code)
+
+  if prefecture_data is None:
+      return "都道府県情報を検索できません。"
+
+  raw_pref = prefecture_data.get("prefecture")
+  raw_city_town = prefecture_data.get(city_town_code)
+
+  if raw_pref is None or raw_city_town is None:
+    return "住所情報を検索できません。"
 
   pref, _pref_kana = raw_pref.split("|")
   city, town, _city_kana, _town_kana = raw_city_town.split("|")
@@ -13,8 +21,16 @@ def lookup_address_by_postal_code(postal_code: str) -> str:
 
 def lookup_address_by_postal_code_kana(postal_code: str) -> str:
   prefecture_code, city_town_code = split_postal_address(postal_code)
-  raw_pref = postal_code_map[prefecture_code]["prefecture"]
-  raw_city_town = postal_code_map[prefecture_code][city_town_code]
+  prefecture_data = postal_code_map.get(prefecture_code)
+  
+  if prefecture_data is None:
+      return "都道府県情報を検索できません。"
+
+  raw_pref = prefecture_data.get("prefecture")
+  raw_city_town = prefecture_data.get(city_town_code)
+
+  if raw_pref is None or raw_city_town is None:
+    return "住所情報を検索できません。"
 
   _pref, pref_kana = raw_pref.split("|")
   _city, _town, city_kana, town_kana = raw_city_town.split("|")
@@ -26,6 +42,12 @@ def search_postal_code_by_address(address: str) -> str:
   step = 0
   i = 0
 
+  step_labels = {
+    0: "都道府県",
+    1: "市区町村",
+    2: "町域",
+  }
+
   # Use a sliding window approach + lenient matches
   while i < len(address): 
     special_notes = {
@@ -33,7 +55,10 @@ def search_postal_code_by_address(address: str) -> str:
       "（その他）": [],
       "一円": []
     }
-    for key in query_map:
+
+    # no entries begin with special characters, so narrow the query.
+    matching_first_char_map = [key for key in query_map if key[0] == address[i]]
+    for key in matching_first_char_map:
       normalized_query = normalize(address[i:i+len(key)])
       stripped_query = strip_paren(normalized_query)
       normalized_key = normalize(key)
@@ -73,7 +98,7 @@ def search_postal_code_by_address(address: str) -> str:
         return query_map[key]
     return query_map.get("以下に掲載がない場合", "")
 
-  return ""
+  return f"郵便番号を検索できません。検索ステージ：{step_labels[step]}"
 
 # TODO
 def create_loc_from_postal():
