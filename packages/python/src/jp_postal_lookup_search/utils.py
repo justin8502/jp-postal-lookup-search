@@ -1,20 +1,22 @@
 import re
 import unicodedata
-
-EXCLUSION_TEXT = "を除く"
-SUFFIX_OPTIONS = ["丁目", "番地", "番", "号"]
-PREFECTURE_DIGITS = 3
-
-HAS_PAREN_WITH_VALUES = r"[（(](.*?)[）)]"
-NUMBER_RANGE_REGEX = r"(\d+)\D*[~～〜]\D*(\d+)"
-STRIP_PAREN_REGEX = r"[()（）]"
+from .constants import (
+  EXCLUSION_TEXT,
+  SUFFIX_OPTIONS,
+  PREFECTURE_DIGITS,
+  HAS_PAREN_WITH_VALUES_COMMA,
+  NUMBER_RANGE_REGEX,
+  STRIP_PAREN_REGEX,
+  MATCH_COMMA_REGEX,
+  MATCH_DASH_REGEX
+)
 
 def extract_query_positional_arguments(addr: str) -> list[str]:
   if EXCLUSION_TEXT in addr: return [addr]
 
   base = [addr]
-  match = re.search(HAS_PAREN_WITH_VALUES, addr)
-  if match and "、" in addr:
+  match = re.search(HAS_PAREN_WITH_VALUES_COMMA, addr)
+  if match:
     unrelated = [addr[:match.start()], addr[match.end():]]
     selection = match.group(1).split("、")
     suffix_label = extract_suffix_label(selection[-1])
@@ -47,8 +49,8 @@ def generate_address_range(addr: str, match: re.Match[str]) -> list[str]:
 
 def normalize(addr: str) -> str:
   addr = unicodedata.normalize("NFKC", addr)
-  addr = re.sub(r"[,，､﹑]", "、", addr)
-  addr = re.sub(r"[-‐‑‒–—―]", "ー", addr)
+  addr = re.sub(MATCH_COMMA_REGEX, "、", addr)
+  addr = re.sub(MATCH_DASH_REGEX, "ー", addr)
   return addr
 
 def split_postal_address(addr: str) -> tuple[str, str]:

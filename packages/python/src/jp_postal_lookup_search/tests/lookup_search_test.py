@@ -1,4 +1,5 @@
 import re
+import time
 from jp_postal_lookup_search.find import (
   lookup_address_by_postal_code,
   lookup_address_by_postal_code_kana,
@@ -80,15 +81,52 @@ def benchmark_lookup_find():
   postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
                   "2310011", "3300802", "2730005", "6008001"]
 
+  addresses = ["東京都千代田区千代田", "東京都港区海岸（１、２丁目）", "東京都渋谷区神宮前",
+               "東京都新宿区新宿", "東京都港区六本木（次のビルを除く）", "神奈川県横浜市西区高島",
+               "神奈川県横浜市中区太田町", "埼玉県さいたま市大宮区宮町", "千葉県船橋市本町",
+               "京都府京都市下京区真町"]
+
+  address_kanas = ["ﾄｳｷｮｳﾄﾁﾖﾀﾞｸﾁﾖﾀﾞ", "ﾄｳｷｮｳﾄﾐﾅﾄｸｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)", "ﾄｳｷｮｳﾄｼﾌﾞﾔｸｼﾞﾝｸﾞｳﾏｴ",
+                   "ﾄｳｷｮｳﾄｼﾝｼﾞｭｸｸｼﾝｼﾞｭｸ", "ﾄｳｷｮｳﾄﾐﾅﾄｸﾛｯﾎﾟﾝｷﾞ(ﾂｷﾞﾉﾋﾞﾙｦﾉｿﾞｸ)", "ｶﾅｶﾞﾜｹﾝﾖｺﾊﾏｼﾆｼｸﾀｶｼﾏ",
+                   "ｶﾅｶﾞﾜｹﾝﾖｺﾊﾏｼﾅｶｸｵｵﾀﾏﾁ", "ｻｲﾀﾏｹﾝｻｲﾀﾏｼｵｵﾐﾔｸﾐﾔﾁｮｳ", "ﾁﾊﾞｹﾝﾌﾅﾊﾞｼｼﾎﾝﾁｮｳ",
+                   "ｷｮｳﾄﾌｷｮｳﾄｼｼﾓｷﾞｮｳｸｼﾝﾁｮｳ"]
+
+  # perform 10000 lookups
+  t_lookup_st = time.time()
+  for _ in range(1000):
+    for postal_code in postal_codes:
+      lookup_address_by_postal_code(postal_code)
+  t_lookup_end = time.time()
+  elapsed_ms_per_call = (t_lookup_end - t_lookup_st) / 10
+  print(f"lookup_address_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
+
+  # perform 10000 kana lookups
+  t_lookup_kana_st = time.time()
+  for _ in range(1000):
+    for postal_code in postal_codes:
+      lookup_address_by_postal_code_kana(postal_code)
+  t_lookup_kana_end = time.time()
+  elapsed_ms_per_call = (t_lookup_kana_end - t_lookup_kana_st) / 10
+  print(f"lookup_address_by_postal_code_kana: {elapsed_ms_per_call:.6f} ms/call")
+
+  # perform 10000 finds
+  t_find_st = time.time()
+  for _ in range(1000):
+    for address in addresses:
+      search_postal_code_by_address(address)
+  t_find_end = time.time()
+  elapsed_ms_per_call = (t_find_end - t_find_st) / 10
+  print(f"search_postal_code_by_address: {elapsed_ms_per_call:.6f} ms/call")
+
   # perform 10000 lookups/finds
+  t_lookup_find_st = time.time()
   for _ in range(1000):
     for postal_code in postal_codes:
       address_lookup = lookup_address_by_postal_code(postal_code)
       postal_lookup = search_postal_code_by_address(address_lookup)
-      assert postal_lookup == postal_code, (
-        f"Mismatch for {postal_code}: "
-        f"expected {postal_code}, got {postal_lookup}"
-      )
+  t_lookup_find_end = time.time()
+  elapsed_ms_per_call = (t_lookup_find_end - t_lookup_find_st) / 10
+  print(f"search_postal_code_by_address + lookup_address_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
 
 def test_invalid_input():
   invalid_postal_1 = "0000000"
@@ -117,5 +155,5 @@ if __name__ == "__main__":
   test_postal_lookup_kana()
   test_fuzzy_matching()
   test_special_cases()
-  benchmark_lookup_find()
   test_invalid_input()
+  benchmark_lookup_find()

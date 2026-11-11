@@ -118,6 +118,26 @@ def fetch_and_populate_maps() -> tuple[Dict[str, PostalMapEntry], Dict[str, Addr
 
   return [postal_code_map, address_map]
 
+def write_to_files(postal_code_map: Dict[str, PostalMapEntry], address_map: Dict[str, AddressMapEntry]) -> None:
+  script_dir = os.path.dirname(__file__)
+
+  file_defaults = {
+    "ensure_ascii": False,
+    "separators": (",", ":"),
+    "indent": 2,
+  }
+
+  files = {
+    "postal_code_lookup.json": postal_code_map,
+    "address_lookup.json": address_map,
+  }
+
+  for filename, data in files.items():
+    filepath = os.path.join(script_dir, "../json", filename)
+
+    with open(filepath, "w", encoding="utf-8") as fp:
+      json.dump(data, fp, **file_defaults)
+
 def validate_data(postal_code_map: Dict[str, PostalMapEntry], address_map: Dict[str, AddressMapEntry]) -> None:
   assert postal_code_map, "Postal code map is empty"
   assert address_map, "Address map is empty"
@@ -146,26 +166,6 @@ def validate_data(postal_code_map: Dict[str, PostalMapEntry], address_map: Dict[
     assert prefecture_string == postal_code_map_tests[postal_code], (
       f"Sample lookup did not match test data: {postal_code}: {prefecture_string}"
     )
-
-def write_to_files(postal_code_map: Dict[str, PostalMapEntry], address_map: Dict[str, AddressMapEntry]) -> None:
-  script_dir = os.path.dirname(__file__)
-
-  file_defaults = {
-    "ensure_ascii": False,
-    "separators": (",", ":"),
-    "indent": 2,
-  }
-
-  files = {
-    "postal_code_lookup.json": postal_code_map,
-    "address_lookup.json": address_map,
-  }
-
-  for filename, data in files.items():
-    filepath = os.path.join(script_dir, "../json", filename)
-
-    with open(filepath, "w", encoding="utf-8") as fp:
-      json.dump(data, fp, **file_defaults)
 
 def main() -> None:
   postal_code_map, address_map = fetch_and_populate_maps()

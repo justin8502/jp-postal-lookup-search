@@ -27,20 +27,20 @@ search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "650002
 
 ## Methods
 
-| Method / 関数 | Description / 説明 | Example / 例 |
-|---|---|---|
-| `lookup_address_by_postal_code(postal_code)` | Looks up address associated with postal code / 郵便番号から住所を検索します。 | `lookup_address_by_postal_code("6500021")` |
-| `lookup_address_by_postal_code_kana(postal_code)` | Looks up address (in kana) associated with postal code / 郵便番号から住所のカナ表記を検索します。 | `lookup_address_by_postal_code_kana("6500021")` |
-| `search_postal_code_by_address(address)` | Matches address to a postal code / 住所から郵便番号を検索します。 | `search_postal_code_by_address("兵庫県神戸市中央区三宮町")` |
+| Method / 関数 | Description / 説明 | Example / 例 | Speed / 速度 |
+|---|---|---|---|
+| `lookup_address_by_postal_code(postal_code)` | Looks up address associated with postal code / 郵便番号から住所を検索します。 | `lookup_address_by_postal_code("6500021")` | ~0.724 µs / call |
+| `lookup_address_by_postal_code_kana(postal_code)` | Looks up address (in kana) associated with postal code / 郵便番号から住所のカナ表記を検索します。 | `lookup_address_by_postal_code_kana("6500021")` | ~0.835 µs / call |
+| `search_postal_code_by_address(address)` | Matches address to a postal code / 住所から郵便番号を検索します。 | `search_postal_code_by_address("兵庫県神戸市中央区三宮町")` | ~313.507 µs / call |
 
 ## Usage
 
 ## Development
 
-The development of this project is guided by 4 principles:
+The development of this project is guided by 5 principles:
 1. No callbacks. Everything should be synchronous
 2. Reduce/Eliminate external dependencies
-3. Emphasize usability and extensibility
+3. Emphasize usability, performance, extensibility
 4. Keep static files small in size
 
 ---
@@ -48,7 +48,7 @@ The development of this project is guided by 4 principles:
 このプロジェクトの実装中心点は以下になります：
 1. コールバック関数厳禁
 2. 依存パッケージなし
-3. 使いやすさと拡張性を重視
+3. 使いやすさ・拡張性・処理速度を重視
 4. 必要ファイル量減少
 
 ## Future Goals

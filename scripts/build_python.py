@@ -3,7 +3,6 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 SOURCE = os.path.join(ROOT, "json")
 DESTINATION = os.path.join(
   ROOT, "packages", "python", "src", "jp_postal_lookup_search", "data"
