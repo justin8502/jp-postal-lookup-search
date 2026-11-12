@@ -4,7 +4,7 @@ description = "Japanese postal code and address lookup with partial matching and
 version = "0.1.0"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.13.1"
+requires-python = ">=3.10"
 authors = [
   { name = "Justin Ang", email = "justinang13@gmail.com" }
 ]
@@ -18,6 +18,9 @@ keywords = [
 ]
 
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/justin8502/jp-postal-lookup-search"
 
 [project.optional-dependencies]
 dev = [

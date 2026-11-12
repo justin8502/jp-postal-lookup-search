@@ -41,6 +41,95 @@ search_postal_code_by_address("北海道札幌市中央区北一条西９丁目"
 
 ## Usage
 
+In addition to the packaged methods, this package also exposes a PostalAddress class 
+that can be used to manage prefecture/city/town information. 
+
+```
+sample_location = PostalAddress("6008001")
+# 京都府京都市下京区真町
+sample_location.update(
+  {
+    "pref": "東京都",
+    "pref_kana": "ﾄｳｷｮｳﾄ",
+  }
+)
+sample_location.address
+# 東京都京都市下京区真町
+```
+
+Initialization takes in both postal code and address, and you can pass custom attributes directly during initialization.
+```
+sample_location = PostalAddress("6008001")
+sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
+# custom
+sample_location = PostalAddress("1020075",
+  {
+    "street": "6-16",
+    "building": "二松学舎大学 九段1・2号館",
+    "street_kana": "6-16ﾆｼｮｳｶﾞｸｼｬﾀﾞｲｶﾞｸ",
+    "building_kana": "ｸﾀﾞﾝ1･2ｺﾞｳｶﾝ"
+  }
+)
+```
+You could even overwrite the kana fields with english:
+```
+location_en_kana = PostalAddress("1110032", 
+  {
+    "pref_kana": "Tokyo-To ",
+    "city_kana": "Taito-Ku ",
+    "town_kana": "Asakusa ",
+    "street_kana":
+    "2 Chome-3-1"
+  }
+)
+location_en_kana.kana
+# Tokyo-To Taito-Ku Asakusa 2 Chome-3-1
+```
+
+---
+
+メソッドに加えて、PostalAddressで都道府県・市区町村・町域など情報を取得・調整できます。
+
+```
+sample_location = PostalAddress("6008001")
+# 京都府京都市下京区真町
+sample_location.update(
+  {
+    "pref": "東京都",
+    "pref_kana": "ﾄｳｷｮｳﾄ",
+  }
+)
+sample_location.address
+# 東京都京都市下京区真町
+```
+郵便番号および住所から初期化できます。また、カスタム項目（都道府県・市区町村・町域など）を指定して初期化することも可能です。
+```
+sample_location = PostalAddress("6008001")
+sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
+# カスタム
+sample_location = PostalAddress("1020075",
+  {
+    "street": "6-16",
+    "building": "二松学舎大学 九段1・2号館",
+    "street_kana": "6-16ﾆｼｮｳｶﾞｸｼｬﾀﾞｲｶﾞｸ",
+    "building_kana": "ｸﾀﾞﾝ1･2ｺﾞｳｶﾝ"
+  }
+)
+```
+カナのプロパティを英語で上書きしてしまってもいいですよ。
+```
+location_en_kana = PostalAddress("1110032", 
+  {
+    "pref_kana": "Tokyo-To ",
+    "city_kana": "Taito-Ku ",
+    "town_kana": "Asakusa ",
+    "street_kana":　"2 Chome-3-1"
+  }
+)
+location_en_kana.kana
+# Tokyo-To Taito-Ku Asakusa 2 Chome-3-1
+```
+
 ## Development
 
 The development of this project is guided by 4 principles:
@@ -59,4 +148,4 @@ The development of this project is guided by 4 principles:
 
 ## Future Goals
 
-EN Support, Github Actions Automatic Update/Build
+EN Translations, Github Actions Automatic Update/Build
