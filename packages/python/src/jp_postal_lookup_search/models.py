@@ -1,3 +1,5 @@
+"""This module defines the PostalAddress class."""
+
 import re
 import warnings
 from typing import Dict, TypedDict
@@ -38,6 +40,9 @@ class PostalAddress:
     if value:
       self._init_from_value(value)
 
+    # Custom acts as a mask, but does not change the underlying properties.
+    # This allows us to manipulate custom independently from the data
+    # loaded from address/postal/code
     self._custom = custom or {}
 
   @property
@@ -183,7 +188,8 @@ class PostalAddress:
 
     # Use a sliding window approach + lenient matches
     while i < len(address): 
-      # no entries begin with special characters, so narrow the query.
+      # narrow the query by only checking keys that match the first character of target substring.
+      # this significantly speeds up performance, with no loss in accuracy.
       keys_matching_address_first_char: list[str] = [key for key in query_map if key[0] == address[i]]
       for key in keys_matching_address_first_char:
         [

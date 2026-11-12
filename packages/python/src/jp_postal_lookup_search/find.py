@@ -1,5 +1,6 @@
-from typing import Dict
+"""This module implements project-level functions."""
 
+from typing import Dict
 from .data import postal_code_map, address_map
 from .utils import (
   extract_query_positional_arguments,
@@ -67,7 +68,8 @@ def search_postal_code_by_address(address: str) -> str:
 
   # Use a sliding window approach + lenient matches
   while i < len(address): 
-    # no entries begin with special characters, so narrow the query.
+    # narrow the query by only checking keys that match the first character of target substring.
+    # this significantly speeds up performance, with no loss in accuracy.
     keys_matching_address_first_char: list[str] = [key for key in query_map if key[0] == address[i]]
     for key in keys_matching_address_first_char:
       [

@@ -1,6 +1,10 @@
+"""This module defines project-level constants."""
+
 EXCLUSION_TEXT = "を除く"
 SUFFIX_OPTIONS = ["丁目", "番地", "番", "号"]
 PREFECTURE_DIGITS = 3
+
+"""REGEX Constants"""
 
 HAS_PAREN_WITH_VALUES_COMMA = r"(?=.*、)[（(](.*?)[）)]"
 NUMBER_RANGE_REGEX = r"(\d+)\D*[~～〜]\D*(\d+)"

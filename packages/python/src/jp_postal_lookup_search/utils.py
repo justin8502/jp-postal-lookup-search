@@ -1,5 +1,7 @@
+"""This module provides util functions for other modules."""
+
 import re
-from typing import Any, Dict
+from typing import Dict
 import unicodedata
 from .constants import (
   EXCLUSION_TEXT,
@@ -74,7 +76,7 @@ def search_special_notes(
   address: str,
   i: int,
   special_notes: Dict[str, list[str]],
-  query_map: Any
+  query_map: Dict
 ) -> str:
   for note, query_list in special_notes.items():
     for final_key in query_list:
@@ -83,7 +85,7 @@ def search_special_notes(
         return query_map[final_key]
   return ""
 
-def search_ichien_other(step: int, query_map: Any) -> str:
+def search_ichien_other(step: int, query_map: Dict) -> str:
   if step == 2:
     # Explicit 一円 match
     if len(query_map) == 1:

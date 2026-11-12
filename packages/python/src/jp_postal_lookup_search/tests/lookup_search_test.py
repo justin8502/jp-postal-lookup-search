@@ -1,3 +1,5 @@
+"""This module defines tests for find methods."""
+
 import re
 import time
 from jp_postal_lookup_search.find import (
@@ -170,6 +172,8 @@ def test_invalid_input():
   assert address_lookup == re.sub("ST", "都道府県", invalid_search_text)
 
 if __name__ == "__main__":
+  # Since most of the checks are against static values, it is possible they could fail
+  # if the dataset is updated. However, it is still a good benchmark.
   test_bulk_postal_lookup()
   test_postal_lookup_kana()
   test_postal_lookup_normalization()

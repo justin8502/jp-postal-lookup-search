@@ -1,3 +1,5 @@
+"""This module defines tests for the PostalAddress class."""
+
 from jp_postal_lookup_search.models import PostalAddress
 
 def test_init_auto_custom():

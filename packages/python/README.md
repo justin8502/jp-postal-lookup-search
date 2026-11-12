@@ -41,6 +41,20 @@ search_postal_code_by_address("北海道札幌市中央区北一条西９丁目"
 
 ## Usage
 
+Installation
+```
+pip install jp-postal-lookup-search
+```
+Importing methods & PostalAddress class
+```
+from jp_postal_lookup_search import (
+  lookup_address_by_postal_code,
+  lookup_address_by_postal_code_kana,
+  search_postal_code_by_address,
+  PostalAddress,
+)
+```
+
 In addition to the packaged methods, this package also exposes a PostalAddress class 
 that can be used to manage prefecture/city/town information. 
 
@@ -81,8 +95,7 @@ location_en_kana = PostalAddress("1110032",
     "pref_kana": "Tokyo-To ",
     "city_kana": "Taito-Ku ",
     "town_kana": "Asakusa ",
-    "street_kana":
-    "2 Chome-3-1"
+    "street_kana": "2 Chome-3-1"
   }
 )
 location_en_kana.kana
@@ -130,7 +143,7 @@ location_en_kana = PostalAddress("1110032",
     "pref_kana": "Tokyo-To ",
     "city_kana": "Taito-Ku ",
     "town_kana": "Asakusa ",
-    "street_kana":　"2 Chome-3-1"
+    "street_kana": "2 Chome-3-1"
   }
 )
 location_en_kana.kana

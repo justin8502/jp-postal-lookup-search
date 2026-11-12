@@ -1,3 +1,5 @@
+"""This module handles loading the prebuilt json files."""
+
 import json
 from importlib.resources import files
 
