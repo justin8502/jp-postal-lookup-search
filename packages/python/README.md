@@ -4,26 +4,32 @@
 A project that allows lookups/searches based on japanese addresses and postal codes. 
 Functionality and dataset is built around the official Japan Post ken_all dataset. 
 
+Supports partial/incomplete matching, local overrides (see usage). 
+
 Example:
 ```
 lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
 search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
-```
 
-Also supports partial/incomplete matching, local overrides (see usage). 
+lookup_address_by_postal_code("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
+search_postal_code_by_address("北海道札幌市中央区北一条西９丁目") -> "0600001"
+```
 
 ---
 
 このプロジェクトでは、郵便番号から住所を検索したり、住所から郵便番号を検索したりできます。
 日本郵便の公式サイトで公開されている郵便番号データ（KEN_ALL）を使用しています。
 
+部分一致・不完全な住所での検索や、ローカルでの上書き設定にも対応しています（Usageを参照）。
+
 例：
 ```
 lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
 search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
-```
 
-部分一致・不完全な住所での検索や、ローカルでの上書き設定にも対応しています（Usageを参照）。
+lookup_address_by_postal_code("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
+search_postal_code_by_address("北海道札幌市中央区北一条西９丁目") -> "0600001"
+```
 
 ## Methods
 
@@ -37,7 +43,7 @@ search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "650002
 
 ## Development
 
-The development of this project is guided by 5 principles:
+The development of this project is guided by 4 principles:
 1. No callbacks. Everything should be synchronous
 2. Reduce/Eliminate external dependencies
 3. Emphasize usability, performance, extensibility

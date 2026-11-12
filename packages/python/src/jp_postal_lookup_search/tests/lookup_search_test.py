@@ -7,7 +7,7 @@ from jp_postal_lookup_search.find import (
 )
 
 def test_bulk_postal_lookup():
-  postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
+  postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011",
                   "2310011", "3300802", "2730005", "6008001", "6048006", "5300001", 
                   "5420081", "6500021", "4600008", "4500002", "8100001", "7300031", 
                   "9800021", "0600001", "9000015"]
@@ -29,6 +29,25 @@ def test_postal_lookup_kana():
     assert address_lookup_kana == kana, (
       f"Mismatch for {postal_code}: "
       f"expected {kana}, got {address_lookup_kana}"
+    )
+
+def test_postal_lookup_normalization():
+  postal_codes = [
+    "1500001",
+    "150-0001",
+    "１５００００１",
+    "１５０ー０００１",
+    "〒１５００００１",
+  ]
+
+  base_postal_code = "1500001"
+  
+  for postal_code in postal_codes:
+    address_lookup = lookup_address_by_postal_code(postal_code)
+    postal_lookup = search_postal_code_by_address(address_lookup)
+    assert postal_lookup == base_postal_code, (
+      f"Mismatch for {postal_code}: "
+      f"expected {base_postal_code}, got {postal_lookup} for {postal_code}"
     )
 
 def test_fuzzy_matching():
@@ -153,6 +172,7 @@ def test_invalid_input():
 if __name__ == "__main__":
   test_bulk_postal_lookup()
   test_postal_lookup_kana()
+  test_postal_lookup_normalization()
   test_fuzzy_matching()
   test_special_cases()
   test_invalid_input()
