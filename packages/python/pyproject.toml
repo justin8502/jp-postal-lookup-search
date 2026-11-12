@@ -1,7 +1,7 @@
 [project]
 name = "jp-postal-lookup-search"
 description = "Japanese postal code and address lookup with partial matching and normalization"
-version = "1.0.0"
+version = "1.0.1"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

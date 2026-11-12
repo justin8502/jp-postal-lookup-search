@@ -1,4 +1,6 @@
 # JP Postal Lookup Search
+[![PyPI version](https://img.shields.io/pypi/v/jp-postal-lookup-search)](https://pypi.org/project/jp-postal-lookup-search/)
+
 ※日本語版が続きます
 
 A project that allows lookups/searches based on japanese addresses and postal codes. 

@@ -36,7 +36,6 @@ class PostalAddress:
   ):
     self._set_default_values()
 
-    print(value)
     if value:
       self._init_from_value(value)
 
@@ -70,7 +69,7 @@ class PostalAddress:
     )
 
   def update(self, custom: PostalAddressCustom):
-    postal_address_custom_keys = ["pref", "city", "town", "street", "building"
+    postal_address_custom_keys = ["pref", "city", "town", "street", "building",
                                   "pref_kana", "city_kana", "town_kana", "street_kana", "building_kana"]
 
     updated_custom = {}
@@ -220,13 +219,13 @@ class PostalAddress:
       else:
         special_note = search_special_notes(address, i, special_notes, query_map)
         if special_note:
-          self._init_from_postal_code(query_map[key])
+          self._init_from_postal_code(special_note)
           return
         i += 1
 
     ichien_other = search_ichien_other(step, query_map)
     if ichien_other:
-      self._init_from_postal_code(query_map[key])
+      self._init_from_postal_code(ichien_other)
       return
 
     warnings.warn(f"郵便番号を検索できません。検索ステージ：{step_labels[step]}", stacklevel=2)
