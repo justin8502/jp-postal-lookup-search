@@ -58,6 +58,7 @@ sample_location.address
 ```
 
 Initialization takes in both postal code and address, and you can pass custom attributes directly during initialization.
+
 ```
 sample_location = PostalAddress("6008001")
 sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
@@ -71,7 +72,9 @@ sample_location = PostalAddress("1020075",
   }
 )
 ```
+
 You could even overwrite the kana fields with english:
+
 ```
 location_en_kana = PostalAddress("1110032", 
   {
@@ -102,7 +105,9 @@ sample_location.update(
 sample_location.address
 # 東京都京都市下京区真町
 ```
+
 郵便番号および住所から初期化できます。また、カスタム項目（都道府県・市区町村・町域など）を指定して初期化することも可能です。
+
 ```
 sample_location = PostalAddress("6008001")
 sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
@@ -116,7 +121,9 @@ sample_location = PostalAddress("1020075",
   }
 )
 ```
+
 カナのプロパティを英語で上書きしてしまってもいいですよ。
+
 ```
 location_en_kana = PostalAddress("1110032", 
   {
