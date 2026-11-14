@@ -2,8 +2,8 @@
 
 import re
 import warnings
-from typing import Dict, TypedDict
-from .constants import MATCH_7_DIGITS
+from typing import TypedDict
+from .constants import MATCH_7_DIGITS, STEP_LABELS
 from .data import postal_code_map, address_map
 from .utils import (
   extract_query_positional_arguments,
@@ -14,6 +14,15 @@ from .utils import (
   search_special_notes,
   split_postal_address
 )
+
+class AddressParts(TypedDict):
+  pref: str
+  city: str
+  town: str
+
+  prefecture_kana: str
+  city_kana: str
+  town_kana: str
 
 class PostalAddressCustom(TypedDict, total=False):
   pref: str
@@ -27,6 +36,15 @@ class PostalAddressCustom(TypedDict, total=False):
   town_kana: str
   street_kana: str
   building_kana: str
+
+SpecialNotes = TypedDict(
+  "SpecialNotes",
+  {
+    "（次のビルを除く）": list[str],
+    "（その他）": list[str],
+    "一円": list[str],
+  },
+)
 
 class PostalAddress:
   def __init__(
@@ -82,8 +100,9 @@ class PostalAddress:
     self._postal_code = postal_code
 
   def reload(self, keep_custom: bool = True):
-    if re.fullmatch(MATCH_7_DIGITS, self.postal_code):
-      self._init_from_postal_code(self.postal_code)
+    normalized_address = normalize_postal_code(self.postal_code)
+    if re.fullmatch(MATCH_7_DIGITS, normalized_address):
+      self._init_from_postal_code(normalized_address)
     else:
       self._init_from_address(self.pref + self.city + self.town)
     if not keep_custom:
@@ -103,8 +122,9 @@ class PostalAddress:
     postal_code: str,
     keep_custom: bool = True
   ):
-    if not re.fullmatch(MATCH_7_DIGITS, postal_code): return
-    self._init_from_postal_code(postal_code)
+    normalized_address = normalize_postal_code(postal_code)
+    if not re.fullmatch(MATCH_7_DIGITS, normalized_address): return
+    self._init_from_postal_code(normalized_address)
     if not keep_custom:
       self.update({})
 
@@ -173,13 +193,7 @@ class PostalAddress:
     step = 0
     i = 0
 
-    step_labels = {
-      0: "都道府県",
-      1: "市区町村",
-      2: "町域",
-    }
-
-    special_notes: Dict[str, list[str]] = {
+    special_notes: SpecialNotes = {
       "（次のビルを除く）": [],
       "（その他）": [],
       "一円": []
@@ -228,7 +242,7 @@ class PostalAddress:
       self._init_from_postal_code(ichien_other)
       return
 
-    warnings.warn(f"郵便番号を検索できません。検索ステージ：{step_labels[step]}", stacklevel=2)
+    warnings.warn(f"郵便番号を検索できません。検索ステージ：{STEP_LABELS[step]}", stacklevel=2)
 
   def _process_step(self, step: int, value: str):
     # Load Partials

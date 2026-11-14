@@ -37,8 +37,9 @@ search_postal_code_by_address("北海道札幌市中央区北一条西９丁目"
 
 | Method / 関数 | Description / 説明 | Example / 例 | Speed / 速度 |
 |---|---|---|---|
-| `lookup_address_by_postal_code(postal_code)` | Looks up address associated with postal code / 郵便番号から住所を検索します。 | `lookup_address_by_postal_code("6500021")` | ~0.724 µs / call |
-| `lookup_address_by_postal_code_kana(postal_code)` | Looks up address (in kana) associated with postal code / 郵便番号から住所のカナ表記を検索します。 | `lookup_address_by_postal_code_kana("6500021")` | ~0.835 µs / call |
+| `lookup_address_by_postal_code(postal_code)` | Looks up address associated with postal code / 郵便番号から住所を検索します。 | `lookup_address_by_postal_code("6500021")` | ~2.031 µs / call |
+| `lookup_address_parts_by_postal_code(postal_code)` | Looks up address associated with postal code and returns object with properties / 郵便番号から住所を検索します。 | `lookup_address_parts_by_postal_code("6500021")` | ~2.228 µs / call |
+| `lookup_address_kana_by_postal_code(postal_code)` | Looks up address (in kana) associated with postal code / 郵便番号から住所のカナ表記を検索します。 | `lookup_address_kana_by_postal_code("6500021")` | ~1.947 µs / call |
 | `search_postal_code_by_address(address)` | Matches address to a postal code / 住所から郵便番号を検索します。 | `search_postal_code_by_address("兵庫県神戸市中央区三宮町")` | ~313.507 µs / call |
 
 ## Usage
@@ -51,7 +52,8 @@ Importing methods & PostalAddress class
 ```
 from jp_postal_lookup_search import (
   lookup_address_by_postal_code,
-  lookup_address_by_postal_code_kana,
+  lookup_address_parts_by_postal_code,
+  lookup_address_kana_by_postal_code,
   search_postal_code_by_address,
   PostalAddress,
 )

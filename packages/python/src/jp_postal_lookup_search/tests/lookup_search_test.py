@@ -4,7 +4,8 @@ import re
 import time
 from jp_postal_lookup_search.find import (
   lookup_address_by_postal_code,
-  lookup_address_by_postal_code_kana,
+  lookup_address_parts_by_postal_code,
+  lookup_address_kana_by_postal_code,
   search_postal_code_by_address,
 )
 
@@ -22,12 +23,29 @@ def test_bulk_postal_lookup():
       f"expected {postal_code}, got {postal_lookup}"
     )
 
+def test_postal_lookup_parts():
+  postal_codes = ["1500001", "3300802", "4500002"]
+
+  for postal_code in postal_codes:
+    address_lookup = lookup_address_by_postal_code(postal_code)
+    address_lookup_parts = lookup_address_parts_by_postal_code(postal_code)
+
+    address_lookup_parts_str = "".join([
+      address_lookup_parts["pref"],
+      address_lookup_parts["city"],
+      address_lookup_parts["town"]
+    ])
+    assert address_lookup == address_lookup_parts_str, (
+      f"Mismatch for {postal_code}: "
+      f"expected {address_lookup}, got {address_lookup_parts_str}"
+    )
+
 def test_postal_lookup_kana():
   postal_codes = ["1500001", "3300802", "2730005"]
   lookup_kana = ["ﾄｳｷｮｳﾄｼﾌﾞﾔｸｼﾞﾝｸﾞｳﾏｴ", "ｻｲﾀﾏｹﾝｻｲﾀﾏｼｵｵﾐﾔｸﾐﾔﾁｮｳ", "ﾁﾊﾞｹﾝﾌﾅﾊﾞｼｼﾎﾝﾁｮｳ"]
   
   for postal_code, kana in zip(postal_codes, lookup_kana):
-    address_lookup_kana = lookup_address_by_postal_code_kana(postal_code)
+    address_lookup_kana = lookup_address_kana_by_postal_code(postal_code)
     assert address_lookup_kana == kana, (
       f"Mismatch for {postal_code}: "
       f"expected {kana}, got {address_lookup_kana}"
@@ -60,7 +78,10 @@ def test_fuzzy_matching():
 
   for tokyo_addr in tokyo_text_variance:
     postal_lookup = search_postal_code_by_address(tokyo_addr)
-    assert postal_lookup == tokyo_text_variance_postal
+    assert postal_lookup == tokyo_text_variance_postal, (
+      f"Mismatch for {tokyo_addr}: "
+      f"expected {tokyo_text_variance_postal}, got {postal_lookup}"
+    )
 
   # 丁目マッチング
   # 宮崎県日南市吾田東（５～１１丁目）
@@ -68,7 +89,10 @@ def test_fuzzy_matching():
   miyazaki_nichinan_agatahigashi_chome = ["宮崎県日南市吾田東５丁目", "宮崎県日南市吾田東６丁目", "宮崎県日南市吾田東７丁目ー１ー２"]
   for miyazaki_addr in miyazaki_nichinan_agatahigashi_chome:
     postal_lookup = search_postal_code_by_address(miyazaki_addr)
-    assert miyazaki_nichinan_agatahigashi_postal == postal_lookup
+    assert miyazaki_nichinan_agatahigashi_postal == postal_lookup, (
+      f"Mismatch for {miyazaki_addr}: "
+      f"expected {miyazaki_nichinan_agatahigashi_postal}, got {postal_lookup}"
+    )
 
   # 北海道札幌市中央区北一条西（１～１９丁目）
   hokkaido_fuzzy_postal = "0600001"
@@ -76,7 +100,10 @@ def test_fuzzy_matching():
   
   for hokkaido_addr in hokkaido_fuzzy:
     postal_lookup = search_postal_code_by_address(hokkaido_addr)
-    assert postal_lookup == hokkaido_fuzzy_postal
+    assert hokkaido_fuzzy_postal == postal_lookup, (
+      f"Mismatch for {hokkaido_addr}: "
+      f"expected {hokkaido_fuzzy_postal}, got {postal_lookup}"
+    )
 
 def test_special_cases():
   # 一円
@@ -121,14 +148,23 @@ def benchmark_lookup_find():
   elapsed_ms_per_call = (t_lookup_end - t_lookup_st) / 10
   print(f"lookup_address_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
 
+  # perform 10000 part lookups
+  t_lookup_part_st = time.time()
+  for _ in range(1000):
+    for postal_code in postal_codes:
+      lookup_address_parts_by_postal_code(postal_code)
+  t_lookup_part_end = time.time()
+  elapsed_ms_per_call = (t_lookup_part_end - t_lookup_part_st) / 10
+  print(f"lookup_address_parts_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
+
   # perform 10000 kana lookups
   t_lookup_kana_st = time.time()
   for _ in range(1000):
     for postal_code in postal_codes:
-      lookup_address_by_postal_code_kana(postal_code)
+      lookup_address_kana_by_postal_code(postal_code)
   t_lookup_kana_end = time.time()
   elapsed_ms_per_call = (t_lookup_kana_end - t_lookup_kana_st) / 10
-  print(f"lookup_address_by_postal_code_kana: {elapsed_ms_per_call:.6f} ms/call")
+  print(f"lookup_address_kana_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
 
   # perform 10000 finds
   t_find_st = time.time()
@@ -175,6 +211,7 @@ if __name__ == "__main__":
   # Since most of the checks are against static values, it is possible they could fail
   # if the dataset is updated. However, it is still a good benchmark.
   test_bulk_postal_lookup()
+  test_postal_lookup_parts()
   test_postal_lookup_kana()
   test_postal_lookup_normalization()
   test_fuzzy_matching()

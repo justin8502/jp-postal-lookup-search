@@ -3,6 +3,11 @@
 EXCLUSION_TEXT = "を除く"
 SUFFIX_OPTIONS = ["丁目", "番地", "番", "号"]
 PREFECTURE_DIGITS = 3
+STEP_LABELS = {
+  0: "都道府県",
+  1: "市区町村",
+  2: "町域",
+}
 
 """REGEX Constants"""
 
