@@ -20,7 +20,7 @@ class AddressParts(TypedDict):
   city: str
   town: str
 
-  prefecture_kana: str
+  pref_kana: str
   city_kana: str
   town_kana: str
 
