@@ -2,7 +2,8 @@
 
 import re
 import warnings
-from typing import TypedDict
+
+from .types import PostalAddressCustom, SpecialNotes
 from .constants import MATCH_7_DIGITS, STEP_LABELS
 from .data import postal_code_map, address_map
 from .utils import (
@@ -13,37 +14,6 @@ from .utils import (
   search_ichien_other,
   search_special_notes,
   split_postal_address
-)
-
-class AddressParts(TypedDict):
-  pref: str
-  city: str
-  town: str
-
-  pref_kana: str
-  city_kana: str
-  town_kana: str
-
-class PostalAddressCustom(TypedDict, total=False):
-  pref: str
-  city: str
-  town: str
-  street: str
-  building: str
-
-  pref_kana: str
-  city_kana: str
-  town_kana: str
-  street_kana: str
-  building_kana: str
-
-SpecialNotes = TypedDict(
-  "SpecialNotes",
-  {
-    "（次のビルを除く）": list[str],
-    "（その他）": list[str],
-    "一円": list[str],
-  },
 )
 
 class PostalAddress:

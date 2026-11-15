@@ -3,6 +3,8 @@
 import re
 from typing import Dict
 import unicodedata
+
+from .types import SpecialNotes
 from .constants import (
   EXCLUSION_TEXT,
   SUFFIX_OPTIONS,
@@ -69,13 +71,13 @@ def split_postal_address(address: str) -> tuple[str, str]:
 def strip_paren(address: str) -> str:
   return re.sub(STRIP_PAREN_REGEX, "", address)
 
-def search_ichien(key) -> str:
+def search_ichien(key: str) -> str:
   re.search(MATCH_ICHI_EN, key)
 
 def search_special_notes(
   address: str,
   i: int,
-  special_notes: Dict[str, list[str]],
+  special_notes: SpecialNotes,
   query_map: Dict
 ) -> str:
   for note, query_list in special_notes.items():
@@ -99,7 +101,7 @@ def search_ichien_other(step: int, query_map: Dict) -> str:
 def normalize_strip_fill(
   address_substr: str,
   key: str,
-  special_notes: Dict[str, list[str]]
+  special_notes: SpecialNotes
 ) -> list[str]:
   # Normalize -> Fix -/(/)/[0-9]
   # Strip -> Remove ()

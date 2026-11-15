@@ -3,7 +3,7 @@
 from typing import Dict
 
 from .constants import STEP_LABELS
-from .models import AddressParts, SpecialNotes
+from .types import AddressParts, SpecialNotes
 from .data import postal_code_map, address_map
 from .utils import (
   extract_query_positional_arguments,
