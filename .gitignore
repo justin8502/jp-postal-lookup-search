@@ -7,5 +7,6 @@
 *.egg-info/
 
 # typescript
+/packages/typescript/node_modules
 /packages/typescript/src/data
 /packages/typescript/src/dist

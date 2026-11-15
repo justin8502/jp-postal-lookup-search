@@ -1,0 +1,24 @@
+{
+  "name": "jp-postal-lookup-search",
+  "version": "1.0.0",
+  "description": "Japanese postal code and address lookup with partial matching and normalization",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "japan",
+    "postal-code",
+    "address",
+    "zipcode",
+    "ken-all",
+    "japanese-address"
+  ],
+  "author": "Justin Ang",
+  "license": "MIT",
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
