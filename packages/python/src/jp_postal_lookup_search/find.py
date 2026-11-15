@@ -11,7 +11,7 @@ from .utils import (
   normalize_postal_code,
   split_postal_address,
   search_special_notes,
-  search_ichien,
+  has_ichien,
   search_ichien_other,
 )
 
@@ -117,7 +117,7 @@ def search_postal_code_by_address(address: str) -> str:
       # For town matches, explode number ranges and do fuzzy matching
       # e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
       if step == 2:
-        if bool(search_ichien(stripped_key)):
+        if has_ichien(stripped_key):
           return query_map[key]
         range_selection_expanded_keys = extract_query_positional_arguments(normalized_key)
         for stripped_key in range_selection_expanded_keys:

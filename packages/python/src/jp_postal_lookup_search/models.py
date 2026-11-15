@@ -10,7 +10,7 @@ from .utils import (
   extract_query_positional_arguments,
   normalize_strip_fill,
   normalize_postal_code,
-  search_ichien,
+  has_ichien,
   search_ichien_other,
   search_special_notes,
   split_postal_address
@@ -185,7 +185,7 @@ class PostalAddress:
         # For town matches, explode number ranges and do fuzzy matching
         # e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
         if step == 2:
-          if bool(search_ichien(stripped_key)):
+          if has_ichien(stripped_key):
             self._process_step(step, key)
             self._init_from_postal_code(query_map[key])
             return

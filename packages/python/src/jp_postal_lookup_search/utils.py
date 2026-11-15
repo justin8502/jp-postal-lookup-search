@@ -71,8 +71,8 @@ def split_postal_address(address: str) -> tuple[str, str]:
 def strip_paren(address: str) -> str:
   return re.sub(STRIP_PAREN_REGEX, "", address)
 
-def search_ichien(key: str) -> str:
-  re.search(MATCH_ICHI_EN, key)
+def has_ichien(key: str) -> bool:
+  bool(re.search(MATCH_ICHI_EN, key))
 
 def search_special_notes(
   address: str,
@@ -93,7 +93,7 @@ def search_ichien_other(step: int, query_map: Dict) -> str:
     if len(query_map) == 1:
       key: str = next(iter(query_map))
 
-      if search_ichien(key):
+      if has_ichien(key):
         return query_map[key]
     return query_map.get("以下に掲載がない場合", "")
   return ""

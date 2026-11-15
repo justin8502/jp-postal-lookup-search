@@ -36,16 +36,28 @@ export function strip_paren(address: string): string {
   return address.replace(STRIP_PAREN_REGEX, "")
 }
 
-export function search_ichien(key: string): string {
-  return ""
+export function hasIchien(key: string): boolean {
+  return MATCH_ICHI_EN.test(key);
 }
 
-export function search_special_notes(
+export function searchSpecialNotes(
   address: string,
   i: number,
-  special_notes: SpecialNotes,
-  query_map: any
+  specialNotes: SpecialNotes,
+  queryMap: any
 ): string {
+  for (let j = 0; j < Object.keys(specialNotes).length; j++) {
+    const note = Object.keys(specialNotes)[j];
+    for (const finalKey of Object.values(specialNotes)[j]) {
+      const targetAddrSt = i;
+      const targetAddrEnd = i + (finalKey.length || 0) - (note?.length || 0);
+      const addresSubStr = address.substring(targetAddrSt, targetAddrEnd)
+      const normalizedQuery = normalize(addresSubStr)
+      if (normalizedQuery + note === finalKey) {
+        return queryMap[finalKey]
+      }
+    }
+  }
   return ""
 }
 

@@ -10,8 +10,8 @@ import {
   // normalize_strip_fill,
   normalizePostalCode,
   splitPostalAddress,
-  // search_special_notes,
-  // search_ichien,
+  searchSpecialNotes,
+  hasIchien,
   // search_ichien_other,
 } from "./utils"
 
