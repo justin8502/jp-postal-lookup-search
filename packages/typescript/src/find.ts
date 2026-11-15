@@ -8,16 +8,16 @@ import { AddressParts } from "./types";
 import {
   // extract_query_positional_arguments,
   // normalize_strip_fill,
-  normalize_postal_code,
-  split_postal_address,
+  normalizePostalCode,
+  splitPostalAddress,
   // search_special_notes,
   // search_ichien,
   // search_ichien_other,
 } from "./utils"
 
 export function lookupAddressByPostalCode(postalCode: string): string {
-  const normalizedPostalCode = normalize_postal_code(postalCode);
-  const [prefectureCode, cityTownCode] = split_postal_address(normalizedPostalCode);
+  const normalizedPostalCode = normalizePostalCode(postalCode);
+  const [prefectureCode, cityTownCode] = splitPostalAddress(normalizedPostalCode);
   const prefectureData = postalCodeLookupData[prefectureCode];
 
   if (prefectureData === undefined) {
@@ -40,19 +40,51 @@ export function lookupAddressByPostalCode(postalCode: string): string {
 }
 
 export function lookupAddressPartsByPostalCode(postalCode: string): AddressParts {
-  return {
+  const normalizedPostalCode = normalizePostalCode(postalCode);
+  let addressParts: AddressParts = {
     "pref": "",
     "city": "",
     "town": "",
-    "pref_kana": "",
-    "city_kana": "",
-    "town_kana": ""
+
+    "prefKana": "",
+    "cityKana": "",
+    "townKana": ""
   }
+
+  const [prefectureCode, cityTownCode] = splitPostalAddress(normalizedPostalCode);
+  const prefectureData = postalCodeLookupData[prefectureCode];
+
+  if (prefectureData === undefined) {
+    return addressParts;
+  }
+
+  const rawPref = prefectureData["prefecture"];
+  const rawCityTown = prefectureData[cityTownCode];
+
+  if (rawPref === undefined) {
+    return addressParts
+  }
+
+  const [pref, prefKana] = rawPref.split("|");
+  addressParts["pref"] = pref || "";
+  addressParts["prefKana"] = prefKana || "";
+
+  if (rawCityTown === undefined) {
+    return addressParts
+  }
+
+  const [city, town, cityKana, townKana] = rawCityTown.split("|");
+  addressParts["city"] = city || "";
+  addressParts["town"] = town || "";
+  addressParts["cityKana"] = cityKana || "";
+  addressParts["townKana"] = townKana || "";
+
+  return addressParts
 }
 
 export function lookupAddressKanaByPostalCode(postalCode: string): string {
-  const normalizedPostalCode = normalize_postal_code(postalCode);
-  const [prefectureCode, cityTownCode] = split_postal_address(normalizedPostalCode);
+  const normalizedPostalCode = normalizePostalCode(postalCode);
+  const [prefectureCode, cityTownCode] = splitPostalAddress(normalizedPostalCode);
   const prefectureData = postalCodeLookupData[prefectureCode];
 
   if (prefectureData === undefined) {

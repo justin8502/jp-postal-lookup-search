@@ -25,7 +25,7 @@ export interface AddressParts {
   city: string;
   town: string;
 
-  pref_kana: string;
-  city_kana: string;
-  town_kana: string;
+  prefKana: string;
+  cityKana: string;
+  townKana: string;
 }

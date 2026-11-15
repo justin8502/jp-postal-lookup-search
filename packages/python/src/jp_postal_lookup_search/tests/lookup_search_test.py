@@ -142,7 +142,7 @@ def benchmark_lookup_find():
   # perform 10000 searches
   print_benchmark_tests(search_postal_code_by_address, addresses)
 
-  # perform 10000 lookups/findsprint_benchmark_tests(
+  # perform 10000 lookups/searches
   print_benchmark_tests(
     lambda postal_code: search_postal_code_by_address(
       lookup_address_by_postal_code(postal_code)

@@ -14,11 +14,11 @@ import {
 } from "./constants"
 import { SpecialNotes } from "./types"
 
-export function normalize_postal_code(postal_code: string): string {
-  postal_code = postal_code.normalize("NFKC")
-  postal_code = postal_code.replace(MATCH_DASH_REGEX, "")
-  postal_code = postal_code.replace(MATCH_POSTAL_SYMBOL_REGEX, "")
-  return postal_code
+export function normalizePostalCode(postalCode: string): string {
+  postalCode = postalCode.normalize("NFKC")
+  postalCode = postalCode.replace(MATCH_DASH_REGEX, "")
+  postalCode = postalCode.replace(MATCH_POSTAL_SYMBOL_REGEX, "")
+  return postalCode
 }
 
 export function normalize(address: string): string {
@@ -28,7 +28,7 @@ export function normalize(address: string): string {
   return address;
 }
 
-export function split_postal_address(address: string): [string, string] {
+export function splitPostalAddress(address: string): [string, string] {
   return [address.substring(0, PREFECTURE_DIGITS), address.substring(PREFECTURE_DIGITS)]
 }
 
