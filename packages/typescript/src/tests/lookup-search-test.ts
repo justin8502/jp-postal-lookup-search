@@ -7,6 +7,23 @@ import {
   searchPostalCodeByAddress
 } from "../find";
 
+function testBulkPostalLookup() {
+  const postalCodes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011",
+                  "2310011", "3300802", "2730005", "6008001", "6048006", "5300001", 
+                  "5420081", "6500021", "4600008", "4500002", "8100001", "7300031", 
+                  "9800021", "0600001", "9000015"];
+  
+  for (const postalCode of postalCodes) {
+    const addressLookup = lookupAddressByPostalCode(postalCode);
+    const postalLookup = searchPostalCodeByAddress(addressLookup);
+    if (postalLookup !== postalCode) {
+      throw new Error(
+        `Mismatch for ${postalCode}: expected ${postalCode}, got ${postalLookup}`
+      );
+    };
+  };
+};
+
 function testPostalLookupParts() {
   const postalCodes = ["1500001", "3300802", "4500002"]
 
@@ -23,9 +40,31 @@ function testPostalLookupParts() {
       throw new Error(
         `Mismatch for ${postalCode}: expected ${addressLookup}, got ${addressLookupPartsCombined}`
       );
-    }
-  }
-}
+    };
+  };
+};
+
+function testPostalLookupKana() {
+  const postalCodesLookupKana = [{
+    postalCode: "1500001",
+    kana: "ﾄｳｷｮｳﾄｼﾌﾞﾔｸｼﾞﾝｸﾞｳﾏｴ"
+  }, {
+    postalCode: "3300802",
+    kana: "ｻｲﾀﾏｹﾝｻｲﾀﾏｼｵｵﾐﾔｸﾐﾔﾁｮｳ"
+  }, {
+    postalCode: "2730005",
+    kana: "ﾁﾊﾞｹﾝﾌﾅﾊﾞｼｼﾎﾝﾁｮｳ"
+  }];
+  
+  postalCodesLookupKana.map((value) => {
+    const addressLookupKana = lookupAddressKanaByPostalCode(value.postalCode);
+    if (addressLookupKana !== value.kana) {
+      throw new Error(
+        `Mismatch for ${value.postalCode}: expected ${value.kana}, got ${addressLookupKana}`
+      );
+    };
+  });
+};
 
 function benchmarkLookupFind() {
   const postalCodes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
@@ -50,7 +89,7 @@ function benchmarkLookupFind() {
     searchPostalCodeByAddress(lookupAddress)
   }
   printBenchMarkTest(lookupAddressByPostalCodeSearch, postalCodes)
-}
+};
 
 function printBenchMarkTest(func: Function, input: Array<string>) {
   const tBenchMarkSt = Date.now();
@@ -62,7 +101,9 @@ function printBenchMarkTest(func: Function, input: Array<string>) {
   const tBenchMarkEnd = Date.now();
   const elapsedMsPerCall = (tBenchMarkEnd - tBenchMarkSt) / (1000 * input.length);
   console.log(`${func.name}: ${elapsedMsPerCall.toFixed(6)} ms/call`);
-}
+};
 
+testBulkPostalLookup();
 testPostalLookupParts();
+testPostalLookupKana();
 benchmarkLookupFind();

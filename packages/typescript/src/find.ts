@@ -4,16 +4,16 @@ import {
   addressLookupData,
   postalCodeLookupData
 } from "./data";
-import { AddressParts } from "./types";
+import { AddressParts, SpecialNotes } from "./types";
 import {
   // extract_query_positional_arguments,
-  // normalize_strip_fill,
+  normalizeStripFill,
   normalizePostalCode,
   splitPostalAddress,
   searchSpecialNotes,
   hasIchien,
   // search_ichien_other,
-} from "./utils"
+} from "./utils";
 
 export function lookupAddressByPostalCode(postalCode: string): string {
   const normalizedPostalCode = normalizePostalCode(postalCode);
@@ -79,7 +79,7 @@ export function lookupAddressPartsByPostalCode(postalCode: string): AddressParts
   addressParts["cityKana"] = cityKana || "";
   addressParts["townKana"] = townKana || "";
 
-  return addressParts
+  return addressParts;
 }
 
 export function lookupAddressKanaByPostalCode(postalCode: string): string {
@@ -107,5 +107,51 @@ export function lookupAddressKanaByPostalCode(postalCode: string): string {
 }
 
 export function searchPostalCodeByAddress(address: string): string {
+  let queryMap: any = addressLookupData;
+  // step: 0-prefecture 1-city 2-town
+  let step = 0;
+  let i = 0;
+
+  let specialNotes: SpecialNotes = {
+    "（次のビルを除く）": [],
+    "（その他）": [],
+    "一円": []
+  };
+
+  // Use a sliding window approach + lenient matches
+  while (i < address.length) {
+    // narrow the query by only checking keys that match the first character of target substring.
+    // this significantly speeds up performance, with no loss in accuracy.
+    const keysMatchingAddressFirstChar = Object.keys(queryMap).filter((key) => {
+      return key[0] === address[i];
+    })
+    for (const key of keysMatchingAddressFirstChar) {
+      const addressSubStr = address.substring(i,i + key.length)
+      const [
+        _normalizedQuery,
+        strippedQuery,
+        normalizedKey,
+        strippedKey
+      ] = normalizeStripFill(addressSubStr, key, specialNotes)
+      // For town matches, explode number ranges and do fuzzy matching
+      // e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
+      if (step === 2) {
+        if (hasIchien(strippedKey)) {
+          return queryMap[key]
+        }
+      }
+      i += 1;
+      //   rangeSelectionExpandedKeys = extractQueryPositionalArguments(normalized_key)
+      //   for stripped_key in range_selection_expanded_keys:
+      //     if stripped_query.startswith(stripped_key) or stripped_key.startswith(stripped_query):
+      //       return query_map[key]
+      // elif stripped_key.startswith(stripped_query):
+      //   query_map = query_map[key]
+      //   step += 1
+      //   i += len(key)
+      //   break
+    }
+  }
+
   return ""
-}
+};
