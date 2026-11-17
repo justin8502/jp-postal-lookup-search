@@ -9,11 +9,11 @@ Supports partial/incomplete matching, local overrides (see usage).
 
 Example:
 ```
-lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
-search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
+const addr = lookupAddressByPostalCode("6500021") -> "兵庫県神戸市中央区三宮町"
+const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町") -> "6500021"
 
-lookup_address_by_postal_code("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
-search_postal_code_by_address("北海道札幌市中央区北一条西９丁目") -> "0600001"
+const addr = lookupAddressByPostalCode("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
+const postalCode = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目") -> "0600001"
 ```
 
 ---
@@ -25,20 +25,21 @@ search_postal_code_by_address("北海道札幌市中央区北一条西９丁目"
 
 例：
 ```
-lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
-search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
+const addr = lookupAddressByPostalCode("6500021") -> "兵庫県神戸市中央区三宮町"
+const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町") -> "6500021"
 
-lookup_address_by_postal_code("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
-search_postal_code_by_address("北海道札幌市中央区北一条西９丁目") -> "0600001"
+const addr = lookupAddressByPostalCode("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
+const postalCode = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目") -> "0600001"
 ```
 
 ## Methods
 
 | Method / 関数 | Description / 説明 | Example / 例 | Speed / 速度 |
 |---|---|---|---|
-| `lookup_address_by_postal_code(postal_code)` | Looks up address associated with postal code / 郵便番号から住所を検索します。 | `lookup_address_by_postal_code("6500021")` | ~0.724 µs / call |
-| `lookup_address_by_postal_code_kana(postal_code)` | Looks up address (in kana) associated with postal code / 郵便番号から住所のカナ表記を検索します。 | `lookup_address_by_postal_code_kana("6500021")` | ~0.835 µs / call |
-| `search_postal_code_by_address(address)` | Matches address to a postal code / 住所から郵便番号を検索します。 | `search_postal_code_by_address("兵庫県神戸市中央区三宮町")` | ~313.507 µs / call |
+| `lookupAddressByPostalCode(postalCode)` | Looks up address associated with postal code / 郵便番号から住所を検索します。 | `lookupAddressByPostalCode("6500021")` | ~2.169 µs / call |
+| `lookupAddressPartsByPostalCode(postalCode)` | Looks up address associated with postal code and returns object with properties / 郵便番号から住所を検索します。 | `lookupAddressPartsByPostalCode("6500021")` | ~1.977 µs / call |
+| `lookupAddressKanaByPostalCode(postalCode)` | Looks up address (in kana) associated with postal code / 郵便番号から住所のカナ表記を検索します。 | `lookupAddressKanaByPostalCode("6500021")` | ~1.971 µs / call |
+| `searchPostalCodeByAddress(address)` | Matches address to a postal code / 住所から郵便番号を検索します。 | `searchPostalCodeByAddress("兵庫県神戸市中央区三宮町")` | ~132.369 µs / call |
 
 ## Usage
 

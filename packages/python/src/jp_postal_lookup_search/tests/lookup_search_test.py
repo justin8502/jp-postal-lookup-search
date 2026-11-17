@@ -125,6 +125,28 @@ def test_special_cases():
   postal_lookup = search_postal_code_by_address(fukuoka_koge_other)
   assert postal_lookup == "8710900"
 
+def test_invalid_input():
+  invalid_postal_1 = "0000000"
+  invalid_postal_2 = "0101010"
+  invalid_address_1 = "東京都沖縄"
+  invalid_address_2 = "50 Hudson Yards, New York, NY 10001, United States"
+
+  invalid_lookup_pref_text = "都道府県情報を検索できません。"
+  invalid_lookup_text = "住所情報を検索できません。"
+  invalid_search_text = "郵便番号を検索できません。検索ステージ：ST"
+
+  postal_lookup = lookup_address_by_postal_code(invalid_postal_1)
+  assert postal_lookup == invalid_lookup_pref_text
+
+  postal_lookup = lookup_address_by_postal_code(invalid_postal_2)
+  assert postal_lookup == invalid_lookup_text
+
+  address_lookup = search_postal_code_by_address(invalid_address_1)
+  assert address_lookup == re.sub("ST", "市区町村", invalid_search_text)
+
+  address_lookup = search_postal_code_by_address(invalid_address_2)
+  assert address_lookup == re.sub("ST", "都道府県", invalid_search_text)
+
 def benchmark_lookup_find():
   postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
                   "2310011", "3300802", "2730005", "6008001"]
@@ -150,28 +172,6 @@ def benchmark_lookup_find():
     postal_codes,
     name="search_postal_code_by_address + lookup_address_by_postal_code"
   )
-
-def test_invalid_input():
-  invalid_postal_1 = "0000000"
-  invalid_postal_2 = "0101010"
-  invalid_address_1 = "東京都沖縄"
-  invalid_address_2 = "50 Hudson Yards, New York, NY 10001, United States"
-
-  invalid_lookup_pref_text = "都道府県情報を検索できません。"
-  invalid_lookup_text = "住所情報を検索できません。"
-  invalid_search_text = "郵便番号を検索できません。検索ステージ：ST"
-
-  postal_lookup = lookup_address_by_postal_code(invalid_postal_1)
-  assert postal_lookup == invalid_lookup_pref_text
-
-  postal_lookup = lookup_address_by_postal_code(invalid_postal_2)
-  assert postal_lookup == invalid_lookup_text
-
-  address_lookup = search_postal_code_by_address(invalid_address_1)
-  assert address_lookup == re.sub("ST", "市区町村", invalid_search_text)
-
-  address_lookup = search_postal_code_by_address(invalid_address_2)
-  assert address_lookup == re.sub("ST", "都道府県", invalid_search_text)
 
 def print_benchmark_tests(func, inputs, name=None):
   t_lookup_st = time.time()
