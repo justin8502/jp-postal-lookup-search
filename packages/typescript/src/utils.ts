@@ -14,20 +14,52 @@ import {
 } from "./constants";
 import { SpecialNotes } from "./types";
 
+declare global {
+  interface String {
+    substringUnicode(start: number, length?: number): string;
+  }
+}
+
 export function extractQueryPositionalArguments(address: string): Array<string> {
   if (address.includes(EXCLUSION_TEXT)) return [address];
 
   let base = [address];
+  let res: Array<string> = [];
   const match = address.match(HAS_PAREN_WITH_VALUES_COMMA);
   if (match) {
+    const parenthesizedContent = match[0].slice(1, -1);
     const noMatchGroups = [
       address.slice(0, match.index),
-      address.slice((match.index || 0) + match[0].length)
+      parenthesizedContent
     ];
-    const selection = noMatchGroups[1]?.split("、") || [""];
-    const suffixLabel = extractSuffixLabel(selection[selection.length - 1] ?? "");
+    const selection = noMatchGroups[1]?.split("、") || [];
+    const lastSelectionElement = selection[selection.length - 1] ?? "";
+    const suffixLabel = extractSuffixLabel(lastSelectionElement);
+    base = [noMatchGroups[0] + lastSelectionElement];
+    if (selection.length && selection[0] !== "") {
+      for (let i = 0; i < selection.length - 1; i ++) {
+        base.unshift(noMatchGroups[0] + (selection[i] || "") + (suffixLabel || ""));
+      }
+    }
+    for (const generatedAddress of base) {
+      const numberRangeMatch = generatedAddress.match(NUMBER_RANGE_REGEX);
+      if (!numberRangeMatch) {
+        res.push(generatedAddress);
+        continue;
+      }
+      res.push(...generateAddressesRange(generatedAddress, numberRangeMatch));
+      res.push(generatedAddress);
+    }
+    res.push(stripParen(address));
+    return res;
   }
-  return base;
+
+  const numberRangeMatchFinal = address.match(NUMBER_RANGE_REGEX);
+  if (!numberRangeMatchFinal) return [stripParen(address)];
+
+  res.push(...generateAddressesRange(address, numberRangeMatchFinal));
+  res.push(stripParen(address));
+  return res;
 };
 
 export function extractSuffixLabel(address: string): string {
@@ -37,6 +69,25 @@ export function extractSuffixLabel(address: string): string {
     }
   }
   return "";
+}
+
+export function generateAddressesRange(address: string, match: RegExpMatchArray): Array<string> {
+  const [start = 0, end = 0] = match.slice(1).map(Number);
+
+  let res: Array<string> = [];
+
+  let range = end - start;
+  for (let i = 0; i < range; i++) {
+    const matchIndex = match.index ?? 0;
+    const stSubStr = address.substringUnicode(0, matchIndex - 1);
+    // substring is behaving strangely due to unicode.
+    // simply start after the ) parenthesis is found.
+    const endIndex = address.indexOf(")", matchIndex + match[0].length);
+    const endSubStr = address.substringUnicode(endIndex + 1);
+    res.push(stSubStr + (i + start).toString() + endSubStr);
+  }
+
+  return res;
 }
 
 export function normalizePostalCode(postalCode: string): string {
@@ -54,7 +105,7 @@ export function normalize(address: string): string {
 };
 
 export function splitPostalAddress(address: string): [string, string] {
-  return [address.substring(0, PREFECTURE_DIGITS), address.substring(PREFECTURE_DIGITS)];
+  return [address.substringUnicode(0, PREFECTURE_DIGITS), address.substringUnicode(PREFECTURE_DIGITS)];
 };
 
 export function stripParen(address: string): string {
@@ -77,7 +128,7 @@ export function searchSpecialNotes(
     for (const finalKey of finalKeys) {
       const targetAddrSt = i;
       const targetAddrEnd = i + (finalKey.length || 0) - (note?.length || 0);
-      const addresSubStr = address.substring(targetAddrSt, targetAddrEnd);
+      const addresSubStr = address.substringUnicode(targetAddrSt, targetAddrEnd);
       const normalizedQuery = normalize(addresSubStr);
       if (normalizedQuery + note === finalKey) {
         return queryMap[finalKey] || "";
@@ -120,4 +171,11 @@ export function normalizeStripFill(
   }
 
   return [normalizedQuery, strippedQuery, normalizedKey, strippedKey];
+};
+
+String.prototype.substringUnicode = function (
+  start: number,
+  end?: number
+): string {
+  return Array.from(this).slice(start, end).join("");
 };

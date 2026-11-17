@@ -35,20 +35,20 @@ def extract_query_positional_arguments(address: str) -> list[str]:
         res += [generated_address]
         continue
 
-      res += generate_addressess_range(generated_address, match) + [generated_address]
+      res += generate_addresses_range(generated_address, match) + [generated_address]
     return res + [strip_paren(address)]
 
   match = re.search(NUMBER_RANGE_REGEX, address)
   if not match: return [strip_paren(address)]
 
-  return generate_addressess_range(address, match) + [strip_paren(address)]
+  return generate_addresses_range(address, match) + [strip_paren(address)]
 
 def extract_suffix_label(address: str) -> str:
   for suffix in SUFFIX_OPTIONS:
     if suffix in address:
       return suffix
 
-def generate_addressess_range(address: str, match: re.Match[str]) -> list[str]:
+def generate_addresses_range(address: str, match: re.Match[str]) -> list[str]:
   start, end = map(int, match.groups())
 
   return [ strip_paren(address[:match.start()] + str(i) + address[match.end():]) for i in range(start, end + 1) ]

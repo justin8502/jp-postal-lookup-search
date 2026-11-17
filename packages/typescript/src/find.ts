@@ -1,18 +1,19 @@
 // This module implements project-level functions.
 
+import { CITY_TOWN_NOT_FOUND, PREFECTURE_NOT_FOUND, STEP_LABELS } from "./constants";
+import { AddressParts, SpecialNotes } from "./types";
 import {
   addressLookupData,
   postalCodeLookupData
 } from "./data";
-import { AddressParts, SpecialNotes } from "./types";
 import {
-  // extract_query_positional_arguments,
+  extractQueryPositionalArguments,
   normalizeStripFill,
   normalizePostalCode,
   splitPostalAddress,
   searchSpecialNotes,
   hasIchien,
-  // search_ichien_other,
+  searchIchienOther,
 } from "./utils";
 
 export function lookupAddressByPostalCode(postalCode: string): string {
@@ -21,14 +22,14 @@ export function lookupAddressByPostalCode(postalCode: string): string {
   const prefectureData = postalCodeLookupData[prefectureCode];
 
   if (prefectureData === undefined) {
-    return "都道府県情報を検索できません。";
+    return PREFECTURE_NOT_FOUND;
   }
 
   const rawPref = prefectureData["prefecture"];
   const rawCityTown = prefectureData[cityTownCode];
 
   if (rawPref === undefined || rawCityTown === undefined) {
-    return "住所情報を検索できません。";
+    return CITY_TOWN_NOT_FOUND;
   }
 
   const [pref, _prefKana] = rawPref.split("|");
@@ -88,14 +89,14 @@ export function lookupAddressKanaByPostalCode(postalCode: string): string {
   const prefectureData = postalCodeLookupData[prefectureCode];
 
   if (prefectureData === undefined) {
-    return "都道府県情報を検索できません。";
+    return PREFECTURE_NOT_FOUND;
   }
 
   const rawPref = prefectureData["prefecture"];
   const rawCityTown = prefectureData[cityTownCode];
 
   if (rawPref === undefined || rawCityTown === undefined) {
-    return "住所情報を検索できません。";
+    return CITY_TOWN_NOT_FOUND;
   }
 
   const [_pref, prefKana] = rawPref.split("|");
@@ -125,33 +126,45 @@ export function searchPostalCodeByAddress(address: string): string {
     const keysMatchingAddressFirstChar = Object.keys(queryMap).filter((key) => {
       return key[0] === address[i];
     })
+    let loopCompleted = false;
     for (const key of keysMatchingAddressFirstChar) {
-      const addressSubStr = address.substring(i,i + key.length)
+      const addressSubStr = address.substringUnicode(i, i + key.length);
       const [
         _normalizedQuery,
         strippedQuery,
         normalizedKey,
         strippedKey
-      ] = normalizeStripFill(addressSubStr, key, specialNotes)
+      ] = normalizeStripFill(addressSubStr, key, specialNotes);
       // For town matches, explode number ranges and do fuzzy matching
       // e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
       if (step === 2) {
         if (hasIchien(strippedKey)) {
-          return queryMap[key]
+          return queryMap[key];
         }
+        const rangeSelectionExpandedKeys = extractQueryPositionalArguments(normalizedKey);
+        // console.log(rangeSelectionExpandedKeys);
+        for (const strippedExpandedKey of rangeSelectionExpandedKeys) {
+          if (strippedQuery.startsWith(strippedExpandedKey) || strippedExpandedKey.startsWith(strippedQuery)) {
+            return queryMap[key];
+          }
+        }
+      } else if (strippedKey.startsWith(strippedQuery)) {
+        queryMap = queryMap[key];
+        step += 1;
+        loopCompleted = true;
+        i += (key.length - 1);
+        break;
       }
+    }
+    if (!loopCompleted) {
+      const specialNote = searchSpecialNotes(address, i, specialNotes, queryMap);
+      if (specialNote) return specialNote;
       i += 1;
-      //   rangeSelectionExpandedKeys = extractQueryPositionalArguments(normalized_key)
-      //   for stripped_key in range_selection_expanded_keys:
-      //     if stripped_query.startswith(stripped_key) or stripped_key.startswith(stripped_query):
-      //       return query_map[key]
-      // elif stripped_key.startswith(stripped_query):
-      //   query_map = query_map[key]
-      //   step += 1
-      //   i += len(key)
-      //   break
     }
   }
 
-  return ""
+  const ichienOther = searchIchienOther(step, queryMap);
+  if (ichienOther) return ichienOther;
+
+  return `郵便番号を検索できません。検索ステージ：${STEP_LABELS[step]}`;
 };
