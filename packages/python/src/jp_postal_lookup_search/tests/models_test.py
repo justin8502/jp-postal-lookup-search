@@ -54,12 +54,11 @@ def test_reset_update_custom_fields():
       "city_kana": "ﾌﾔﾜﾀｼ"
     }
   )
-  print(postal_update_custom.address)
-  print(postal_update_custom.kana)
-  postal_update_custom.update({}
-  )
-  print(postal_update_custom.address)
-  print(postal_update_custom.kana)
+  assert postal_update_custom.address == "京都府八幡市海岸（１、２丁目）"
+  assert postal_update_custom.kana == "ｷｮｳﾄﾌﾔﾜﾀｼｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)"
+  postal_update_custom.update({})
+  assert postal_update_custom.address == "東京都港区海岸（１、２丁目）"
+  assert postal_update_custom.kana == "ﾄｳｷｮｳﾄﾐﾅﾄｸｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)"
 
 def test_partially_invalid_postal_codes():
   addr_1 = PostalAddress("1059999", {"street": "何", "building": "小島ビル"})

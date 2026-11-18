@@ -14,12 +14,6 @@ import {
 } from "./constants";
 import { SpecialNotes } from "./types";
 
-declare global {
-  interface String {
-    substringUnicode(start: number, length?: number): string;
-  }
-}
-
 export function extractQueryPositionalArguments(address: string): Array<string> {
   if (address.includes(EXCLUSION_TEXT)) return [address];
 
@@ -179,3 +173,15 @@ String.prototype.substringUnicode = function (
 ): string {
   return Array.from(this).slice(start, end).join("");
 };
+
+function assert(
+  condition: boolean,
+  message?: string
+): void {
+  if (!condition) {
+    const errorMsg = message || "Error: Mismatch found.";
+    throw new Error(errorMsg);
+  }
+}
+
+globalThis.assert = assert;
