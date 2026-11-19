@@ -9,7 +9,7 @@ def test_init_auto_custom():
   assert postal_base.city == "京都市下京区"
   assert postal_base.town == "真町"
   assert postal_base.kana == "ｷｮｳﾄﾌｷｮｳﾄｼｼﾓｷﾞｮｳｸｼﾝﾁｮｳ"
-  postal_base.update({})
+  postal_base.update_custom({})
   postal_base.reload()
   assert postal_base.address == "京都府京都市下京区真町"
   assert postal_base.kana == "ｷｮｳﾄﾌｷｮｳﾄｼｼﾓｷﾞｮｳｸｼﾝﾁｮｳ"
@@ -46,7 +46,7 @@ def test_init_auto_custom():
 def test_reset_update_custom_fields():
   # ６１４－８０７７
   postal_update_custom = PostalAddress("１０５－００２２")
-  postal_update_custom.update(
+  postal_update_custom.update_custom(
     {
       "pref": "京都",
       "city": "府八幡市",
@@ -54,12 +54,11 @@ def test_reset_update_custom_fields():
       "city_kana": "ﾌﾔﾜﾀｼ"
     }
   )
-  print(postal_update_custom.address)
-  print(postal_update_custom.kana)
-  postal_update_custom.update({}
-  )
-  print(postal_update_custom.address)
-  print(postal_update_custom.kana)
+  assert postal_update_custom.address == "京都府八幡市海岸（１、２丁目）"
+  assert postal_update_custom.kana == "ｷｮｳﾄﾌﾔﾜﾀｼｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)"
+  postal_update_custom.update_custom({})
+  assert postal_update_custom.address == "東京都港区海岸（１、２丁目）"
+  assert postal_update_custom.kana == "ﾄｳｷｮｳﾄﾐﾅﾄｸｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)"
 
 def test_partially_invalid_postal_codes():
   addr_1 = PostalAddress("1059999", {"street": "何", "building": "小島ビル"})
@@ -70,7 +69,20 @@ def test_partially_invalid_postal_codes():
   assert addr_1.address == "山形県何小島ビル"
   assert addr_1.kana == "ﾔﾏｶﾞﾀｹﾝ"
 
+def test_postal_address_equality():
+  addr1 = PostalAddress("6008001", {"street": "何", "building": "小島ビル"})
+  addr2 = PostalAddress("6008001")
+  addr3 = PostalAddress("１０５－００２２", {"street": "何", "building": "小島ビル"})
+  addr1.update({
+    "town": "○○町"
+  })
+
+  assert(addr1 == addr2)
+  assert(not addr1.strict_equal(addr2))
+  assert(not addr1 == addr3)
+
 if __name__ == "__main__":
   test_init_auto_custom()
   test_reset_update_custom_fields()
   test_partially_invalid_postal_codes()
+  test_postal_address_equality()

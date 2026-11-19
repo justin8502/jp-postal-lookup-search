@@ -19,3 +19,8 @@ MATCH_DASH_REGEX = r"[-‐‑‒–—―ー－]"
 MATCH_POSTAL_SYMBOL_REGEX = r"〒"
 MATCH_7_DIGITS = r"^\d{7}$"
 MATCH_ICHI_EN = r".+[市区町村]一円$"
+
+"""Errors"""
+
+PREFECTURE_NOT_FOUND = "都道府県情報を検索できません。"
+CITY_TOWN_NOT_FOUND = "住所情報を検索できません。"

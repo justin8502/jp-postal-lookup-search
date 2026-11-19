@@ -125,66 +125,6 @@ def test_special_cases():
   postal_lookup = search_postal_code_by_address(fukuoka_koge_other)
   assert postal_lookup == "8710900"
 
-def benchmark_lookup_find():
-  postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
-                  "2310011", "3300802", "2730005", "6008001"]
-
-  addresses = ["東京都千代田区千代田", "東京都港区海岸（１、２丁目）", "東京都渋谷区神宮前",
-               "東京都新宿区新宿", "東京都港区六本木（次のビルを除く）", "神奈川県横浜市西区高島",
-               "神奈川県横浜市中区太田町", "埼玉県さいたま市大宮区宮町", "千葉県船橋市本町",
-               "京都府京都市下京区真町"]
-
-  address_kanas = ["ﾄｳｷｮｳﾄﾁﾖﾀﾞｸﾁﾖﾀﾞ", "ﾄｳｷｮｳﾄﾐﾅﾄｸｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)", "ﾄｳｷｮｳﾄｼﾌﾞﾔｸｼﾞﾝｸﾞｳﾏｴ",
-                   "ﾄｳｷｮｳﾄｼﾝｼﾞｭｸｸｼﾝｼﾞｭｸ", "ﾄｳｷｮｳﾄﾐﾅﾄｸﾛｯﾎﾟﾝｷﾞ(ﾂｷﾞﾉﾋﾞﾙｦﾉｿﾞｸ)", "ｶﾅｶﾞﾜｹﾝﾖｺﾊﾏｼﾆｼｸﾀｶｼﾏ",
-                   "ｶﾅｶﾞﾜｹﾝﾖｺﾊﾏｼﾅｶｸｵｵﾀﾏﾁ", "ｻｲﾀﾏｹﾝｻｲﾀﾏｼｵｵﾐﾔｸﾐﾔﾁｮｳ", "ﾁﾊﾞｹﾝﾌﾅﾊﾞｼｼﾎﾝﾁｮｳ",
-                   "ｷｮｳﾄﾌｷｮｳﾄｼｼﾓｷﾞｮｳｸｼﾝﾁｮｳ"]
-
-  # perform 10000 lookups
-  t_lookup_st = time.time()
-  for _ in range(1000):
-    for postal_code in postal_codes:
-      lookup_address_by_postal_code(postal_code)
-  t_lookup_end = time.time()
-  elapsed_ms_per_call = (t_lookup_end - t_lookup_st) / 10
-  print(f"lookup_address_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
-
-  # perform 10000 part lookups
-  t_lookup_part_st = time.time()
-  for _ in range(1000):
-    for postal_code in postal_codes:
-      lookup_address_parts_by_postal_code(postal_code)
-  t_lookup_part_end = time.time()
-  elapsed_ms_per_call = (t_lookup_part_end - t_lookup_part_st) / 10
-  print(f"lookup_address_parts_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
-
-  # perform 10000 kana lookups
-  t_lookup_kana_st = time.time()
-  for _ in range(1000):
-    for postal_code in postal_codes:
-      lookup_address_kana_by_postal_code(postal_code)
-  t_lookup_kana_end = time.time()
-  elapsed_ms_per_call = (t_lookup_kana_end - t_lookup_kana_st) / 10
-  print(f"lookup_address_kana_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
-
-  # perform 10000 finds
-  t_find_st = time.time()
-  for _ in range(1000):
-    for address in addresses:
-      search_postal_code_by_address(address)
-  t_find_end = time.time()
-  elapsed_ms_per_call = (t_find_end - t_find_st) / 10
-  print(f"search_postal_code_by_address: {elapsed_ms_per_call:.6f} ms/call")
-
-  # perform 10000 lookups/finds
-  t_lookup_find_st = time.time()
-  for _ in range(1000):
-    for postal_code in postal_codes:
-      address_lookup = lookup_address_by_postal_code(postal_code)
-      postal_lookup = search_postal_code_by_address(address_lookup)
-  t_lookup_find_end = time.time()
-  elapsed_ms_per_call = (t_lookup_find_end - t_lookup_find_st) / 10
-  print(f"search_postal_code_by_address + lookup_address_by_postal_code: {elapsed_ms_per_call:.6f} ms/call")
-
 def test_invalid_input():
   invalid_postal_1 = "0000000"
   invalid_postal_2 = "0101010"
@@ -206,6 +146,41 @@ def test_invalid_input():
 
   address_lookup = search_postal_code_by_address(invalid_address_2)
   assert address_lookup == re.sub("ST", "都道府県", invalid_search_text)
+
+def benchmark_lookup_find():
+  postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011", 
+                  "2310011", "3300802", "2730005", "6008001"]
+
+  addresses = ["東京都千代田区千代田", "東京都港区海岸（１、２丁目）", "東京都渋谷区神宮前",
+               "東京都新宿区新宿", "東京都港区六本木（次のビルを除く）", "神奈川県横浜市西区高島",
+               "神奈川県横浜市中区太田町", "埼玉県さいたま市大宮区宮町", "千葉県船橋市本町",
+               "京都府京都市下京区真町"]
+
+  # perform 10000 postal code/part/kana lookups
+  print_benchmark_tests(lookup_address_by_postal_code, postal_codes)
+  print_benchmark_tests(lookup_address_parts_by_postal_code, postal_codes)
+  print_benchmark_tests(lookup_address_kana_by_postal_code, postal_codes)
+
+  # perform 10000 searches
+  print_benchmark_tests(search_postal_code_by_address, addresses)
+
+  # perform 10000 lookups/searches
+  print_benchmark_tests(
+    lambda postal_code: search_postal_code_by_address(
+      lookup_address_by_postal_code(postal_code)
+    ),
+    postal_codes,
+    name="search_postal_code_by_address + lookup_address_by_postal_code"
+  )
+
+def print_benchmark_tests(func, inputs, name=None):
+  t_lookup_st = time.time()
+  for _ in range(1000):
+    for input in inputs:
+      func(input)
+  t_lookup_end = time.time()
+  elapsed_ms_per_call = (t_lookup_end - t_lookup_st) / 10
+  print(f"{name or func.__name__}: {elapsed_ms_per_call:.6f} ms/call")
 
 if __name__ == "__main__":
   # Since most of the checks are against static values, it is possible they could fail

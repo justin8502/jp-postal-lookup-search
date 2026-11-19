@@ -2,8 +2,8 @@
 
 from typing import Dict
 
-from .constants import STEP_LABELS
-from .models import AddressParts, SpecialNotes
+from .constants import CITY_TOWN_NOT_FOUND, PREFECTURE_NOT_FOUND, STEP_LABELS
+from .types import AddressParts, SpecialNotes
 from .data import postal_code_map, address_map
 from .utils import (
   extract_query_positional_arguments,
@@ -11,7 +11,7 @@ from .utils import (
   normalize_postal_code,
   split_postal_address,
   search_special_notes,
-  search_ichien,
+  has_ichien,
   search_ichien_other,
 )
 
@@ -21,13 +21,13 @@ def lookup_address_by_postal_code(postal_code: str) -> str:
   prefecture_data: Dict[str, str] | None = postal_code_map.get(prefecture_code)
 
   if prefecture_data is None:
-      return "都道府県情報を検索できません。"
+      return PREFECTURE_NOT_FOUND
 
   raw_pref: str | None = prefecture_data.get("prefecture")
   raw_city_town: str | None = prefecture_data.get(city_town_code)
 
   if raw_pref is None or raw_city_town is None:
-    return "住所情報を検索できません。"
+    return CITY_TOWN_NOT_FOUND
 
   pref, _pref_kana = raw_pref.split("|")
   city, town, _city_kana, _town_kana = raw_city_town.split("|")
@@ -77,13 +77,13 @@ def lookup_address_kana_by_postal_code(postal_code: str) -> str:
   prefecture_data: Dict[str, str] = postal_code_map.get(prefecture_code)
   
   if prefecture_data is None:
-      return "都道府県情報を検索できません。"
+      return PREFECTURE_NOT_FOUND
 
   raw_pref: str | None = prefecture_data.get("prefecture")
   raw_city_town: str | None = prefecture_data.get(city_town_code)
 
   if raw_pref is None or raw_city_town is None:
-    return "住所情報を検索できません。"
+    return CITY_TOWN_NOT_FOUND
 
   _pref, pref_kana = raw_pref.split("|")
   _city, _town, city_kana, town_kana = raw_city_town.split("|")
@@ -117,7 +117,7 @@ def search_postal_code_by_address(address: str) -> str:
       # For town matches, explode number ranges and do fuzzy matching
       # e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
       if step == 2:
-        if bool(search_ichien(stripped_key)):
+        if has_ichien(stripped_key):
           return query_map[key]
         range_selection_expanded_keys = extract_query_positional_arguments(normalized_key)
         for stripped_key in range_selection_expanded_keys:

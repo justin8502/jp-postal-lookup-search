@@ -9,12 +9,23 @@ Functionality and dataset is built around the official Japan Post ken_all datase
 Supports partial/incomplete matching, local overrides (see usage). 
 
 Example:
-```
-lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
-search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
+```py
+from jp_postal_lookup_search import (
+  lookup_address_by_postal_code,
+  search_postal_code_by_address,
+)
 
-lookup_address_by_postal_code("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
-search_postal_code_by_address("北海道札幌市中央区北一条西９丁目") -> "0600001"
+...
+
+lookup_address_by_postal_code("6500021")
+# "兵庫県神戸市中央区三宮町"
+search_postal_code_by_address("兵庫県神戸市中央区三宮町")
+# "6500021"
+
+lookup_address_by_postal_code("0600001")
+# "北海道札幌市中央区北一条西（１～１９丁目）"
+search_postal_code_by_address("北海道札幌市中央区北一条西９丁目")
+# "0600001"
 ```
 
 ---
@@ -25,12 +36,23 @@ search_postal_code_by_address("北海道札幌市中央区北一条西９丁目"
 部分一致・不完全な住所での検索や、ローカルでの上書き設定にも対応しています（Usageを参照）。
 
 例：
-```
-lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
-search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
+```py
+from jp_postal_lookup_search import (
+  lookup_address_by_postal_code,
+  search_postal_code_by_address,
+)
 
-lookup_address_by_postal_code("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
-search_postal_code_by_address("北海道札幌市中央区北一条西９丁目") -> "0600001"
+...
+
+lookup_address_by_postal_code("6500021")
+# "兵庫県神戸市中央区三宮町"
+search_postal_code_by_address("兵庫県神戸市中央区三宮町")
+# "6500021"
+
+lookup_address_by_postal_code("0600001")
+# "北海道札幌市中央区北一条西（１～１９丁目）"
+search_postal_code_by_address("北海道札幌市中央区北一条西９丁目")
+# "0600001"
 ```
 
 ## Methods
@@ -49,7 +71,7 @@ Installation
 pip install jp-postal-lookup-search
 ```
 Importing methods & PostalAddress class
-```
+```py
 from jp_postal_lookup_search import (
   lookup_address_by_postal_code,
   lookup_address_parts_by_postal_code,
@@ -62,10 +84,10 @@ from jp_postal_lookup_search import (
 In addition to the packaged methods, this package also exposes a PostalAddress class 
 that can be used to manage prefecture/city/town information. 
 
-```
+```py
 sample_location = PostalAddress("6008001")
 # 京都府京都市下京区真町
-sample_location.update(
+sample_location.update_custom(
   {
     "pref": "東京都",
     "pref_kana": "ﾄｳｷｮｳﾄ",
@@ -77,7 +99,7 @@ sample_location.address
 
 Initialization takes in both postal code and address, and you can pass custom attributes directly during initialization.
 
-```
+```py
 sample_location = PostalAddress("6008001")
 sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
 # custom
@@ -93,7 +115,7 @@ sample_location = PostalAddress("1020075",
 
 You could even overwrite the kana fields with english:
 
-```
+```py
 location_en_kana = PostalAddress("1110032", 
   {
     "pref_kana": "Tokyo-To ",
@@ -108,12 +130,27 @@ location_en_kana.kana
 
 ---
 
+インストール
+```
+pip install jp-postal-lookup-search
+```
+関数および PostalAddress クラスのインポート
+```py
+from jp_postal_lookup_search import (
+  lookup_address_by_postal_code,
+  lookup_address_parts_by_postal_code,
+  lookup_address_kana_by_postal_code,
+  search_postal_code_by_address,
+  PostalAddress,
+)
+```
+
 メソッドに加えて、PostalAddressで都道府県・市区町村・町域など情報を取得・調整できます。
 
-```
+```py
 sample_location = PostalAddress("6008001")
 # 京都府京都市下京区真町
-sample_location.update(
+sample_location.update_custom(
   {
     "pref": "東京都",
     "pref_kana": "ﾄｳｷｮｳﾄ",
@@ -125,7 +162,7 @@ sample_location.address
 
 郵便番号および住所から初期化できます。また、カスタム項目（都道府県・市区町村・町域など）を指定して初期化することも可能です。
 
-```
+```py
 sample_location = PostalAddress("6008001")
 sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
 # カスタム
@@ -141,7 +178,7 @@ sample_location = PostalAddress("1020075",
 
 カナのプロパティを英語で上書きしてしまってもいいですよ。
 
-```
+```py
 location_en_kana = PostalAddress("1110032", 
   {
     "pref_kana": "Tokyo-To ",

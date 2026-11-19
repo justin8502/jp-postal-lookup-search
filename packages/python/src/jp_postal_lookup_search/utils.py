@@ -3,6 +3,8 @@
 import re
 from typing import Dict
 import unicodedata
+
+from .types import SpecialNotes
 from .constants import (
   EXCLUSION_TEXT,
   SUFFIX_OPTIONS,
@@ -33,20 +35,20 @@ def extract_query_positional_arguments(address: str) -> list[str]:
         res += [generated_address]
         continue
 
-      res += generate_addressess_range(generated_address, match) + [generated_address]
+      res += generate_addresses_range(generated_address, match) + [generated_address]
     return res + [strip_paren(address)]
 
   match = re.search(NUMBER_RANGE_REGEX, address)
   if not match: return [strip_paren(address)]
 
-  return generate_addressess_range(address, match) + [strip_paren(address)]
+  return generate_addresses_range(address, match) + [strip_paren(address)]
 
 def extract_suffix_label(address: str) -> str:
   for suffix in SUFFIX_OPTIONS:
     if suffix in address:
       return suffix
 
-def generate_addressess_range(address: str, match: re.Match[str]) -> list[str]:
+def generate_addresses_range(address: str, match: re.Match[str]) -> list[str]:
   start, end = map(int, match.groups())
 
   return [ strip_paren(address[:match.start()] + str(i) + address[match.end():]) for i in range(start, end + 1) ]
@@ -69,13 +71,13 @@ def split_postal_address(address: str) -> tuple[str, str]:
 def strip_paren(address: str) -> str:
   return re.sub(STRIP_PAREN_REGEX, "", address)
 
-def search_ichien(key) -> str:
-  re.search(MATCH_ICHI_EN, key)
+def has_ichien(key: str) -> bool:
+  bool(re.search(MATCH_ICHI_EN, key))
 
 def search_special_notes(
   address: str,
   i: int,
-  special_notes: Dict[str, list[str]],
+  special_notes: SpecialNotes,
   query_map: Dict
 ) -> str:
   for note, query_list in special_notes.items():
@@ -91,7 +93,7 @@ def search_ichien_other(step: int, query_map: Dict) -> str:
     if len(query_map) == 1:
       key: str = next(iter(query_map))
 
-      if search_ichien(key):
+      if has_ichien(key):
         return query_map[key]
     return query_map.get("以下に掲載がない場合", "")
   return ""
@@ -99,7 +101,7 @@ def search_ichien_other(step: int, query_map: Dict) -> str:
 def normalize_strip_fill(
   address_substr: str,
   key: str,
-  special_notes: Dict[str, list[str]]
+  special_notes: SpecialNotes
 ) -> list[str]:
   # Normalize -> Fix -/(/)/[0-9]
   # Strip -> Remove ()
