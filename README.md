@@ -1,5 +1,6 @@
 # JP Postal Lookup Search
 [![PyPI version](https://img.shields.io/pypi/v/jp-postal-lookup-search)](https://pypi.org/project/jp-postal-lookup-search/)
+[![npm version](https://img.shields.io/npm/v/jp-postal-lookup-search?style=flat-square&logo=npm)](https://www.npmjs.com/package/jp-postal-lookup-search)
 
 ※日本語版が続きます
 
