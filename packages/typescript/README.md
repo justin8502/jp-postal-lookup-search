@@ -2,34 +2,58 @@
 
 ※日本語版が続きます
 
-A project that allows lookups/searches based on japanese addresses and postal codes. 
+A synchronous, dependency-free Japanese postal code and address lookup library.
+Supports postal code-to-address lookups, address-to-postal code searches, partial matching, and customizable address overrides.
 Functionality and dataset is built around the official Japan Post ken_all dataset. 
 
 Supports partial/incomplete matching, local overrides (see usage). 
 
 Example:
-```
-const addr = lookupAddressByPostalCode("6500021") -> "兵庫県神戸市中央区三宮町"
-const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町") -> "6500021"
+```ts
+import {
+  lookupAddressByPostalCode,
+  searchPostalCodeByAddress,
+} from 'jp-postal-lookup-search';
 
-const addr = lookupAddressByPostalCode("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
-const postalCode = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目") -> "0600001"
+...
+
+const addr = lookupAddressByPostalCode("6500021")
+// "兵庫県神戸市中央区三宮町"
+const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町")
+// "6500021"
+
+const addr2 = lookupAddressByPostalCode("0600001")
+// "北海道札幌市中央区北一条西（１～１９丁目）"
+const postalCode2 = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目")
+// "0600001"
 ```
 
 ---
 
 このプロジェクトでは、郵便番号から住所を検索したり、住所から郵便番号を検索したりできます。
+コールバック関数厳禁🙅‍♂️・依存パッケージなし😎・使いやすい👍パッケージです。
 日本郵便の公式サイトで公開されている郵便番号データ（KEN_ALL）を使用しています。
 
 部分一致・不完全な住所での検索や、ローカルでの上書き設定にも対応しています（Usageを参照）。
 
 例：
-```
-const addr = lookupAddressByPostalCode("6500021") -> "兵庫県神戸市中央区三宮町"
-const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町") -> "6500021"
+```ts
+import {
+  lookupAddressByPostalCode,
+  searchPostalCodeByAddress,
+} from 'jp-postal-lookup-search';
 
-const addr = lookupAddressByPostalCode("0600001") -> "北海道札幌市中央区北一条西（１～１９丁目）"
-const postalCode = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目") -> "0600001"
+...
+
+const addr = lookupAddressByPostalCode("6500021")
+// "兵庫県神戸市中央区三宮町"
+const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町")
+// "6500021"
+
+const addr2 = lookupAddressByPostalCode("0600001")
+// "北海道札幌市中央区北一条西（１～１９丁目）"
+const postalCode2 = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目")
+// "0600001"
 ```
 
 ## Methods
@@ -45,111 +69,182 @@ const postalCode = searchPostalCodeByAddress("北海道札幌市中央区北一�
 
 Installation
 ```
-pip install jp-postal-lookup-search
+npm install jp-postal-lookup-search
 ```
 Importing methods & PostalAddress class
+```ts
+import {
+  lookupAddressByPostalCode,
+  lookupAddressPartsByPostalCode,
+  lookupAddressKanaByPostalCode,
+  searchPostalCodeByAddress,
+  PostalAddress
+} from 'jp-postal-lookup-search';
 ```
-from jp_postal_lookup_search import (
-  lookup_address_by_postal_code,
-  lookup_address_by_postal_code_kana,
-  search_postal_code_by_address,
-  PostalAddress,
-)
+
+This project is ideal for React lifecycle methods, such as useState/useEffect.
+
+```ts
+const [pref, setPref] = useState("");
+const [city, setCity] = useState("");
+const [town, setTown] = useState("");
+...
+
+useEffect(() => {
+  if (postalCode.length !== 7) return;
+  
+  const {
+    pref,
+    city,
+    town
+  } = lookupAddressPartsByPostalCode(postalCode);
+  setPref(pref);
+  setCity(city);
+  setTown(town);
+}, [postalCode]);
+```
+
+Here is another example syncing a postalCode state variable to a passed address prop (or an error code, if it does not exist).
+```ts
+const { address } = props;
+const [postalCode, setPostalCode] = useState(
+  searchPostalCodeByAddress(address)
+);
+...
+
+useEffect(() => {
+  setPostalCode(searchPostalCodeByAddress(address));
+}, [address]);
 ```
 
 In addition to the packaged methods, this package also exposes a PostalAddress class 
 that can be used to manage prefecture/city/town information. 
 
-```
-sample_location = PostalAddress("6008001")
-# 京都府京都市下京区真町
-sample_location.update(
+```ts
+const sampleLocation = new PostalAddress("6008001");
+// 京都府京都市下京区真町
+sampleLocation.update(
   {
     "pref": "東京都",
-    "pref_kana": "ﾄｳｷｮｳﾄ",
+    "prefKana": "ﾄｳｷｮｳﾄ",
   }
-)
-sample_location.address
-# 東京都京都市下京区真町
-```
+);
+console.log(sampleLocation.getAddress());
+// 東京都京都市下京区真町
 
-Initialization takes in both postal code and address, and you can pass custom attributes directly during initialization.
-
-```
-sample_location = PostalAddress("6008001")
-sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
-# custom
-sample_location = PostalAddress("1020075",
+const sampleLocation2 = new PostalAddress("6008001");
+const sampleLocation3 = new PostalAddress("埼玉県さいたま市大宮区宮町");
+// custom
+const sampleLocation4 = new PostalAddress("1020075",
   {
     "street": "6-16",
     "building": "二松学舎大学 九段1・2号館",
-    "street_kana": "6-16ﾆｼｮｳｶﾞｸｼｬﾀﾞｲｶﾞｸ",
-    "building_kana": "ｸﾀﾞﾝ1･2ｺﾞｳｶﾝ"
+    "streetKana": "6-16ﾆｼｮｳｶﾞｸｼｬﾀﾞｲｶﾞｸ",
+    "buildingKana": "ｸﾀﾞﾝ1･2ｺﾞｳｶﾝ"
   }
-)
-```
+);
 
-You could even overwrite the kana fields with english:
-
-```
-location_en_kana = PostalAddress("1110032", 
+const locationEnKana = new PostalAddress("1110032", 
   {
-    "pref_kana": "Tokyo-To ",
-    "city_kana": "Taito-Ku ",
-    "town_kana": "Asakusa ",
-    "street_kana": "2 Chome-3-1"
+    "prefKana": "Tokyo-To ",
+    "cityKana": "Taito-Ku ",
+    "townKana": "Asakusa ",
+    "streetKana": "2 Chome-3-1"
   }
-)
-location_en_kana.kana
-# Tokyo-To Taito-Ku Asakusa 2 Chome-3-1
+);
+console.log(locationEnKana.getKana());
+// Tokyo-To Taito-Ku Asakusa 2 Chome-3-1
 ```
 
 ---
 
+インストール
+```
+npm install jp-postal-lookup-search
+```
+関数およびPostalAddressのインポート
+```ts
+import {
+  lookupAddressByPostalCode,
+  lookupAddressPartsByPostalCode,
+  lookupAddressKanaByPostalCode,
+  searchPostalCodeByAddress,
+  PostalAddress
+} from 'jp-postal-lookup-search';
+```
+
+こちらのメソッドは、useStateやuseEffectなどのReactライフサイクルフックとの併用に適しています。
+
+```ts
+const [pref, setPref] = useState("");
+const [city, setCity] = useState("");
+const [town, setTown] = useState("");
+...
+
+useEffect(() => {
+  if (postalCode.length !== 7) return;
+  
+  const {
+    pref,
+    city,
+    town
+  } = lookupAddressPartsByPostalCode(postalCode);
+  setPref(pref);
+  setCity(city);
+  setTown(town);
+}, [postalCode]);
+```
+
+渡された住所に対応する郵便番号をpostalCodeに反映する例です。該当する郵便番号が存在しない場合は、エラーコードが返されます。
+
+```ts
+const { address } = props;
+const [postalCode, setPostalCode] = useState(
+  searchPostalCodeByAddress(address)
+);
+...
+
+useEffect(() => {
+  setPostalCode(searchPostalCodeByAddress(address));
+}, [address]);
+```
+
 メソッドに加えて、PostalAddressで都道府県・市区町村・町域など情報を取得・調整できます。
 
-```
-sample_location = PostalAddress("6008001")
-# 京都府京都市下京区真町
-sample_location.update(
+```ts
+const sampleLocation = new PostalAddress("6008001");
+// 京都府京都市下京区真町
+sampleLocation.update(
   {
     "pref": "東京都",
-    "pref_kana": "ﾄｳｷｮｳﾄ",
+    "prefKana": "ﾄｳｷｮｳﾄ",
   }
-)
-sample_location.address
-# 東京都京都市下京区真町
-```
+);
+console.log(sampleLocation.getAddress());
+// 東京都京都市下京区真町
 
-郵便番号および住所から初期化できます。また、カスタム項目（都道府県・市区町村・町域など）を指定して初期化することも可能です。
-
-```
-sample_location = PostalAddress("6008001")
-sample_location = PostalAddress("埼玉県さいたま市大宮区宮町")
-# カスタム
-sample_location = PostalAddress("1020075",
+const sampleLocation2 = new PostalAddress("6008001");
+const sampleLocation3 = new PostalAddress("埼玉県さいたま市大宮区宮町");
+// custom
+const sampleLocation4 = new PostalAddress("1020075",
   {
     "street": "6-16",
     "building": "二松学舎大学 九段1・2号館",
-    "street_kana": "6-16ﾆｼｮｳｶﾞｸｼｬﾀﾞｲｶﾞｸ",
-    "building_kana": "ｸﾀﾞﾝ1･2ｺﾞｳｶﾝ"
+    "streetKana": "6-16ﾆｼｮｳｶﾞｸｼｬﾀﾞｲｶﾞｸ",
+    "buildingKana": "ｸﾀﾞﾝ1･2ｺﾞｳｶﾝ"
   }
-)
-```
+);
 
-カナのプロパティを英語で上書きしてしまってもいいですよ。
-
-```
-location_en_kana = PostalAddress("1110032", 
+const locationEnKana = new PostalAddress("1110032", 
   {
-    "pref_kana": "Tokyo-To ",
-    "city_kana": "Taito-Ku ",
-    "town_kana": "Asakusa ",
-    "street_kana": "2 Chome-3-1"
+    "prefKana": "Tokyo-To ",
+    "cityKana": "Taito-Ku ",
+    "townKana": "Asakusa ",
+    "streetKana": "2 Chome-3-1"
   }
-)
-location_en_kana.kana
-# Tokyo-To Taito-Ku Asakusa 2 Chome-3-1
+);
+console.log(locationEnKana.getKana());
+// Tokyo-To Taito-Ku Asakusa 2 Chome-3-1
 ```
 
 ## Development
