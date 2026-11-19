@@ -56,7 +56,20 @@ class PostalAddress:
       (self._custom.get("building") or self.building or "")
     )
 
-  def update(self, custom: PostalAddressCustom):
+  def update(self, values: PostalAddressCustom):
+    self.pref = values.get("pref") or self.pref
+    self.city = values.get("city") or self.city
+    self.town = values.get("town") or self.town
+    self.street = values.get("street") or self.street
+    self.building = values.get("building") or self.building
+
+    self.pref_kana = values.get("pref_kana") or self.pref_kana
+    self.city_kana = values.get("city_kana") or self.city_kana
+    self.town_kana = values.get("town_kana") or self.town_kana
+    self.street_kana = values.get("street_kana") or self.street_kana
+    self.building_kana = values.get("building_kana") or self.building_kana
+
+  def update_custom(self, custom: PostalAddressCustom):
     postal_address_custom_keys = ["pref", "city", "town", "street", "building",
                                   "pref_kana", "city_kana", "town_kana", "street_kana", "building_kana"]
 
@@ -76,7 +89,7 @@ class PostalAddress:
     else:
       self._init_from_address(self.pref + self.city + self.town)
     if not keep_custom:
-      self.update({})
+      self.update_custom({})
 
   def load_from_address(
     self,
@@ -85,7 +98,7 @@ class PostalAddress:
   ):
     self._init_from_address(address)
     if not keep_custom:
-      self.update({})
+      self.update_custom({})
 
   def load_from_postal_code(
     self, 

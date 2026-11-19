@@ -9,7 +9,7 @@ function testInitAutoCustom() {
   assert(postalBase.city === "京都市下京区");
   assert(postalBase.town === "真町");
   assert(postalBase.getKana() === "ｷｮｳﾄﾌｷｮｳﾄｼｼﾓｷﾞｮｳｸｼﾝﾁｮｳ");
-  postalBase.update({});
+  postalBase.updateCustom({});
   postalBase.reload();
   assert(postalBase.getAddress() === "京都府京都市下京区真町");
   assert(postalBase.getKana() === "ｷｮｳﾄﾌｷｮｳﾄｼｼﾓｷﾞｮｳｸｼﾝﾁｮｳ");
@@ -32,16 +32,16 @@ function testInitAutoCustom() {
   postalEnParam.reload();
   assert(postalEnParam.getKana() === "Tokyo-To Taito-Ku Asakusa 2 Chome-3-1");
 
-  // const addrBase = new PostalAddress("埼玉県さいたま市大宮区宮町");
-  // assert(addrBase.getPostalCode() === "3300802");
-  // assert(addrBase.pref === "埼玉県");
-  // assert(addrBase.city === "さいたま市大宮区");
-  // assert(addrBase.town === "宮町");
-  // assert(addrBase.getKana() === "ｻｲﾀﾏｹﾝｻｲﾀﾏｼｵｵﾐﾔｸﾐﾔﾁｮｳ");
+  const addrBase = new PostalAddress("埼玉県さいたま市大宮区宮町");
+  assert(addrBase.getPostalCode() === "3300802");
+  assert(addrBase.pref === "埼玉県");
+  assert(addrBase.city === "さいたま市大宮区");
+  assert(addrBase.town === "宮町");
+  assert(addrBase.getKana() === "ｻｲﾀﾏｹﾝｻｲﾀﾏｼｵｵﾐﾔｸﾐﾔﾁｮｳ");
 
-  // const addrChome = new PostalAddress("北海道札幌市中央区北一条西９丁目");
-  // assert(addrChome.getAddress() === "北海道札幌市中央区北一条西（１～１９丁目）");
-  // assert(addrChome.getKana() === "ﾎｯｶｲﾄﾞｳｻｯﾎﾟﾛｼﾁｭｳｵｳｸｷﾀ1ｼﾞｮｳﾆｼ(1-19ﾁｮｳﾒ)");
+  const addrChome = new PostalAddress("北海道札幌市中央区北一条西９丁目");
+  assert(addrChome.getAddress() === "北海道札幌市中央区北一条西（１～１９丁目）");
+  assert(addrChome.getKana() === "ﾎｯｶｲﾄﾞｳｻｯﾎﾟﾛｼﾁｭｳｵｳｸｷﾀ1ｼﾞｮｳﾆｼ(1-19ﾁｮｳﾒ)");
 
   console.log("testInitAutoCustom: OK");
 }
@@ -49,7 +49,7 @@ function testInitAutoCustom() {
 function testResetUpdateCustomFields() {
   // ６１４－８０７７
   const postalUpdateCustom = new PostalAddress("１０５－００２２");
-  postalUpdateCustom.update({
+  postalUpdateCustom.updateCustom({
     "pref": "京都",
     "city": "府八幡市",
     "prefKana": "ｷｮｳﾄ",
@@ -57,7 +57,7 @@ function testResetUpdateCustomFields() {
   });
   assert(postalUpdateCustom.getAddress() === "京都府八幡市海岸（１、２丁目）");
   assert(postalUpdateCustom.getKana() === "ｷｮｳﾄﾌﾔﾜﾀｼｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)");
-  postalUpdateCustom.update({});
+  postalUpdateCustom.updateCustom({});
   assert(postalUpdateCustom.getAddress() === "東京都港区海岸（１、２丁目）");
   assert(postalUpdateCustom.getKana() === "ﾄｳｷｮｳﾄﾐﾅﾄｸｶｲｶﾞﾝ(1､2ﾁｮｳﾒ)");
 
@@ -76,6 +76,22 @@ function testPartiallyInvalidPostalCodes() {
   console.log("testPartiallyInvalidPostalCodes: OK");
 }
 
+function testPostalAddressEquality() {
+  const addr1 = new PostalAddress("6008001", {"street": "何", "building": "小島ビル"});
+  const addr2 = new PostalAddress("6008001");
+  const addr3 = new PostalAddress("１０５－００２２", {"street": "何", "building": "小島ビル"});
+  addr1.update({
+    town: "○○町"
+  })
+
+  assert(addr1.equals(addr2));
+  assert(!addr1.strictEquals(addr2));
+  assert(!addr1.equals(addr3));
+
+  console.log("testPostalAddressEquality: OK");
+}
+
 testInitAutoCustom();
 testResetUpdateCustomFields();
 testPartiallyInvalidPostalCodes();
+testPostalAddressEquality();

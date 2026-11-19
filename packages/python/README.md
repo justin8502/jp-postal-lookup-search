@@ -10,6 +10,13 @@ Supports partial/incomplete matching, local overrides (see usage).
 
 Example:
 ```
+from jp_postal_lookup_search import (
+  lookup_address_by_postal_code,
+  search_postal_code_by_address,
+)
+
+...
+
 lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
 search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
 
@@ -26,6 +33,13 @@ search_postal_code_by_address("北海道札幌市中央区北一条西９丁目"
 
 例：
 ```
+from jp_postal_lookup_search import (
+  lookup_address_by_postal_code,
+  search_postal_code_by_address,
+)
+
+...
+
 lookup_address_by_postal_code("6500021") -> "兵庫県神戸市中央区三宮町"
 search_postal_code_by_address("兵庫県神戸市中央区三宮町") -> "6500021"
 
@@ -65,7 +79,7 @@ that can be used to manage prefecture/city/town information.
 ```
 sample_location = PostalAddress("6008001")
 # 京都府京都市下京区真町
-sample_location.update(
+sample_location.update_custom(
   {
     "pref": "東京都",
     "pref_kana": "ﾄｳｷｮｳﾄ",
@@ -113,7 +127,7 @@ location_en_kana.kana
 ```
 sample_location = PostalAddress("6008001")
 # 京都府京都市下京区真町
-sample_location.update(
+sample_location.update_custom(
   {
     "pref": "東京都",
     "pref_kana": "ﾄｳｷｮｳﾄ",

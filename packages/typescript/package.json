@@ -4,6 +4,7 @@
   "description": "Japanese postal code and address lookup with partial matching and normalization",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "test": "tsx ./src/tests/lookup-search-test.ts && tsx ./src/tests/models-test.ts",
     "typecheck": "tsc --noEmit"
   },

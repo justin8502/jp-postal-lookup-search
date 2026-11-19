@@ -8,5 +8,8 @@
 
 # typescript
 /packages/typescript/node_modules
+/packages/typescript/dist/*
+/packages/typescript/*.tgz
+/packages/typescript/*.tsbuildinfo
 /packages/typescript/src/data
 /packages/typescript/src/dist
