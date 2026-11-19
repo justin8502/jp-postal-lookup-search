@@ -26,7 +26,14 @@ for filename in files:
 TYPESCRIPT_PACKAGE = os.path.join(ROOT, "packages", "typescript")
 
 subprocess.run(
-    ["npm", "run", "build"],
+    ["npm.cmd", "run", "build"],
+    cwd=TYPESCRIPT_PACKAGE,
+    check=True,
+    shell=True,
+)
+
+subprocess.run(
+    ["npm.cmd", "pack"],
     cwd=TYPESCRIPT_PACKAGE,
     check=True,
 )
