@@ -6,6 +6,7 @@ import {
   lookupAddressKanaByPostalCode,
   searchPostalCodeByAddress
 } from "../find";
+import { assert } from "../utils";
 
 function testBulkPostalLookup() {
   const postalCodes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011",

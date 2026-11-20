@@ -1,7 +1,7 @@
 // This module implements project-level functions.
 
 import { CITY_TOWN_NOT_FOUND, PREFECTURE_NOT_FOUND, STEP_LABELS } from "./constants";
-import { AddressParts, SpecialNotes } from "./types";
+import { AddressData, AddressParts, CityMap, QueryMap, SpecialNotes, TownMap } from "./types";
 import {
   addressLookupData,
   postalCodeLookupData
@@ -14,6 +14,7 @@ import {
   searchSpecialNotes,
   hasIchien,
   searchIchienOther,
+  substringUnicode,
 } from "./utils";
 
 export function lookupAddressByPostalCode(postalCode: string): string {
@@ -108,7 +109,7 @@ export function lookupAddressKanaByPostalCode(postalCode: string): string {
 }
 
 export function searchPostalCodeByAddress(address: string): string {
-  let queryMap: any = addressLookupData;
+  let queryMap: QueryMap = addressLookupData;
   // step: 0-prefecture 1-city 2-town
   let step = 0;
   let i = 0;
@@ -128,7 +129,7 @@ export function searchPostalCodeByAddress(address: string): string {
     })
     let loopCompleted = false;
     for (const key of keysMatchingAddressFirstChar) {
-      const addressSubStr = address.substringUnicode(i, i + key.length);
+      const addressSubStr = substringUnicode(address, i, i + key.length);
       const [
         _normalizedQuery,
         strippedQuery,
@@ -139,17 +140,22 @@ export function searchPostalCodeByAddress(address: string): string {
       // e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
       if (step === 2) {
         if (hasIchien(strippedKey)) {
-          return queryMap[key];
+          const townMap = queryMap as TownMap;
+          return townMap[key] ?? "";
         }
         const rangeSelectionExpandedKeys = extractQueryPositionalArguments(normalizedKey);
-        // console.log(rangeSelectionExpandedKeys);
         for (const strippedExpandedKey of rangeSelectionExpandedKeys) {
           if (strippedQuery.startsWith(strippedExpandedKey) || strippedExpandedKey.startsWith(strippedQuery)) {
-            return queryMap[key];
+            const townMap = queryMap as TownMap;
+            return townMap[key] ?? "";
           }
         }
       } else if (strippedKey.startsWith(strippedQuery)) {
-        queryMap = queryMap[key];
+        if (step === 0) {
+          queryMap = queryMap[key] as CityMap;
+        } else if (step === 1) {
+          queryMap = queryMap[key] as TownMap;
+        }
         step += 1;
         loopCompleted = true;
         i += (key.length - 1);
@@ -157,14 +163,21 @@ export function searchPostalCodeByAddress(address: string): string {
       }
     }
     if (!loopCompleted) {
-      const specialNote = searchSpecialNotes(address, i, specialNotes, queryMap);
+      const specialNote = searchSpecialNotes(
+        address,
+        i,
+        specialNotes,
+        step === 2 ? queryMap as TownMap : {}
+      );
       if (specialNote) return specialNote;
       i += 1;
     }
   }
 
-  const ichienOther = searchIchienOther(step, queryMap);
-  if (ichienOther) return ichienOther;
+  if (step === 2) {
+    const ichienOther = searchIchienOther(step, queryMap as TownMap);
+    if (ichienOther) return ichienOther;
+  }
 
   return `郵便番号を検索できません。検索ステージ：${STEP_LABELS[step]}`;
 };

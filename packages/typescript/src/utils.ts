@@ -73,11 +73,11 @@ export function generateAddressesRange(address: string, match: RegExpMatchArray)
   let range = end - start;
   for (let i = 0; i < range; i++) {
     const matchIndex = match.index ?? 0;
-    const stSubStr = address.substringUnicode(0, matchIndex - 1);
+    const stSubStr = substringUnicode(address, 0, matchIndex - 1);
     // substring is behaving strangely due to unicode.
     // simply start after the ) parenthesis is found.
     const endIndex = address.indexOf(")", matchIndex + match[0].length);
-    const endSubStr = address.substringUnicode(endIndex + 1);
+    const endSubStr = substringUnicode(address, endIndex + 1);
     res.push(stSubStr + (i + start).toString() + endSubStr);
   }
 
@@ -99,7 +99,7 @@ export function normalize(address: string): string {
 };
 
 export function splitPostalAddress(address: string): [string, string] {
-  return [address.substringUnicode(0, PREFECTURE_DIGITS), address.substringUnicode(PREFECTURE_DIGITS)];
+  return [substringUnicode(address, 0, PREFECTURE_DIGITS), substringUnicode(address, PREFECTURE_DIGITS)];
 };
 
 export function stripParen(address: string): string {
@@ -122,7 +122,7 @@ export function searchSpecialNotes(
     for (const finalKey of finalKeys) {
       const targetAddrSt = i;
       const targetAddrEnd = i + (finalKey.length || 0) - (note?.length || 0);
-      const addresSubStr = address.substringUnicode(targetAddrSt, targetAddrEnd);
+      const addresSubStr = substringUnicode(address, targetAddrSt, targetAddrEnd);
       const normalizedQuery = normalize(addresSubStr);
       if (normalizedQuery + note === finalKey) {
         return queryMap[finalKey] || "";
@@ -167,14 +167,15 @@ export function normalizeStripFill(
   return [normalizedQuery, strippedQuery, normalizedKey, strippedKey];
 };
 
-String.prototype.substringUnicode = function (
+export function substringUnicode(
+  value: string,
   start: number,
   end?: number
 ): string {
-  return Array.from(this).slice(start, end).join("");
+  return Array.from(value).slice(start, end).join("");
 };
 
-function assert(
+export function assert(
   condition: boolean,
   message?: string
 ): void {
@@ -183,5 +184,3 @@ function assert(
     throw new Error(errorMsg);
   }
 }
-
-globalThis.assert = assert;

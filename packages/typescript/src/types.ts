@@ -14,6 +14,11 @@ export interface AddressData {
   }
 }
 
+export type PrefMap = AddressData;
+export type CityMap = AddressData[string];
+export type TownMap = AddressData[string][string];
+export type QueryMap = PrefMap | CityMap | TownMap;
+
 export interface PostalCodeData {
   [prefCode: string]: {
     [prefData: string]: string

@@ -2,7 +2,7 @@
 
 import { MATCH_7_DIGITS, STEP_LABELS } from "./constants";
 import { postalCodeLookupData, addressLookupData } from "./data";
-import { SpecialNotes } from "./types";
+import { CityMap, QueryMap, SpecialNotes, TownMap } from "./types";
 import { 
   extractQueryPositionalArguments,
   hasIchien,
@@ -10,7 +10,8 @@ import {
   normalizeStripFill,
   searchIchienOther,
   searchSpecialNotes,
-  splitPostalAddress
+  splitPostalAddress,
+  substringUnicode
 } from "./utils";
 
 interface PostalAddressCustom {
@@ -180,7 +181,7 @@ export class PostalAddress {
   }
   
   private initFromAddress(address: string) {
-    let queryMap: any = addressLookupData;
+    let queryMap: QueryMap = addressLookupData;
     // step: 0-prefecture 1-city 2-town
     let step = 0;
     let i = 0;
@@ -200,7 +201,7 @@ export class PostalAddress {
       })
       let loopCompleted = false;
       for (const key of keysMatchingAddressFirstChar) {
-        const addressSubStr = address.substringUnicode(i, i + key.length);
+        const addressSubStr = substringUnicode(address, i, i + key.length);
         const [
           _normalizedQuery,
           strippedQuery,
@@ -212,19 +213,24 @@ export class PostalAddress {
         if (step === 2) {
           if (hasIchien(strippedKey)) {
             this.processStep(step, key);
-            this.initFromPostalCode(queryMap[key]);
+            const townMap = queryMap as TownMap;
+            this.initFromPostalCode(townMap[key] ?? "");
             return;
           }
           const rangeSelectionExpandedKeys = extractQueryPositionalArguments(normalizedKey);
-          // console.log(rangeSelectionExpandedKeys);
           for (const strippedExpandedKey of rangeSelectionExpandedKeys) {
             if (strippedQuery.startsWith(strippedExpandedKey) || strippedExpandedKey.startsWith(strippedQuery)) {
-              this.initFromPostalCode(queryMap[key]);
+              const townMap = queryMap as TownMap;
+              this.initFromPostalCode(townMap[key] ?? "");
               return;
             }
           }
         } else if (strippedKey.startsWith(strippedQuery)) {
-          queryMap = queryMap[key];
+          if (step === 0) {
+            queryMap = queryMap[key] as CityMap;
+          } else if (step === 1) {
+            queryMap = queryMap[key] as TownMap;
+          }
           step += 1;
           loopCompleted = true;
           i += (key.length - 1);
@@ -232,7 +238,12 @@ export class PostalAddress {
         }
       }
       if (!loopCompleted) {
-        const specialNote = searchSpecialNotes(address, i, specialNotes, queryMap);
+        const specialNote = searchSpecialNotes(
+          address,
+          i,
+          specialNotes,
+          step === 2 ? queryMap as TownMap : {}
+        );
         if (specialNote) {
           this.initFromPostalCode(specialNote);
           return;
@@ -241,10 +252,12 @@ export class PostalAddress {
       }
     }
   
-    const ichienOther = searchIchienOther(step, queryMap);
-    if (ichienOther) {
-      this.initFromPostalCode(ichienOther);
-      return;
+    if (step === 2) {
+      const ichienOther = searchIchienOther(step, queryMap as TownMap);
+      if (ichienOther) {
+        this.initFromPostalCode(ichienOther);
+        return;
+      }
     }
 
     console.warn(`郵便番号を検索できません。検索ステージ：${STEP_LABELS[step]}`);

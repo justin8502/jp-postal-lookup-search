@@ -1,6 +1,7 @@
 // This module defines tests for the PostalAddress class.
 
 import { PostalAddress } from "../models";
+import { assert } from "../utils";
 
 function testInitAutoCustom() {
   const postalBase = new PostalAddress("6008001");
