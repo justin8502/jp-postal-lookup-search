@@ -10,6 +10,8 @@ Functionality and dataset is built around the official Japan Post ken_all datase
 
 Supports partial/incomplete matching, local overrides (see usage). 
 
+[Try the interactive demo on CodePen](https://codepen.io/justin8502/pen/GgmZwEo)
+
 Example:
 ```ts
 import {
@@ -20,14 +22,7 @@ import {
 ...
 
 const addr = lookupAddressByPostalCode("6500021")
-// "兵庫県神戸市中央区三宮町"
 const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町")
-// "6500021"
-
-const addr2 = lookupAddressByPostalCode("0600001")
-// "北海道札幌市中央区北一条西（１～１９丁目）"
-const postalCode2 = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目")
-// "0600001"
 ```
 
 ---
@@ -37,6 +32,8 @@ const postalCode2 = searchPostalCodeByAddress("北海道札幌市中央区北一
 日本郵便の公式サイトで公開されている郵便番号データ（KEN_ALL）を使用しています。
 
 部分一致・不完全な住所での検索や、ローカルでの上書き設定にも対応しています（Usageを参照）。
+
+[DEMOを試してみる](https://codepen.io/justin8502/pen/GgmZwEo)
 
 例：
 ```ts
@@ -48,14 +45,7 @@ import {
 ...
 
 const addr = lookupAddressByPostalCode("6500021")
-// "兵庫県神戸市中央区三宮町"
 const postalCode = searchPostalCodeByAddress("兵庫県神戸市中央区三宮町")
-// "6500021"
-
-const addr2 = lookupAddressByPostalCode("0600001")
-// "北海道札幌市中央区北一条西（１～１９丁目）"
-const postalCode2 = searchPostalCodeByAddress("北海道札幌市中央区北一条西９丁目")
-// "0600001"
 ```
 
 ## Methods

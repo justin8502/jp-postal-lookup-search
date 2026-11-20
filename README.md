@@ -9,7 +9,7 @@ Functionality and dataset is built around the official Japan Post ken_all datase
 
 Supports partial/incomplete matching, local overrides. 
 
-Current package support: Python
+Current package support: Python, Typescript
 
 ---
 
@@ -18,4 +18,4 @@ Current package support: Python
 
 部分一致・不完全な住所での検索や、ローカルでの上書き設定にも対応しています。
 
-対応環境: Python
+対応環境: Python, Typescript
