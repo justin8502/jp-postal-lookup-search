@@ -1,10 +1,9 @@
 // This module defines custom types.
 
-export interface SpecialNotes {
-  "（次のビルを除く）": Array<string>;
-  "（その他）": Array<string>;
-  "一円": Array<string>;
-}
+export type PrefMap = AddressData;
+export type CityMap = AddressData[string];
+export type TownMap = AddressData[string][string];
+export type QueryMap = PrefMap | CityMap | TownMap;
 
 export interface AddressData {
   [pref: string]: {
@@ -14,15 +13,17 @@ export interface AddressData {
   }
 }
 
-export type PrefMap = AddressData;
-export type CityMap = AddressData[string];
-export type TownMap = AddressData[string][string];
-export type QueryMap = PrefMap | CityMap | TownMap;
-
 export interface PostalCodeData {
   [prefCode: string]: {
     [prefData: string]: string
   }
+}
+
+export interface NormalizedAddress {
+  normalizedQuery: string;
+  strippedQuery: string;
+  normalizedKey: string;
+  strippedKey: string;
 }
 
 export interface AddressParts {
@@ -33,4 +34,14 @@ export interface AddressParts {
   prefKana: string;
   cityKana: string;
   townKana: string;
+}
+
+export interface SpecialNotes {
+  [key: string]: Array<string>;
+}
+
+export interface SearchReturn {
+  i: number;
+  key?: string;
+  completed: boolean;
 }

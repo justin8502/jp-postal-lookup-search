@@ -1,6 +1,5 @@
 import os
 import subprocess
-import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(ROOT, "json")
@@ -25,15 +24,35 @@ for filename in files:
 
 TYPESCRIPT_PACKAGE = os.path.join(ROOT, "packages", "typescript")
 
-subprocess.run(
-    ["npm.cmd", "run", "build"],
+is_windows = os.name == "nt"
+npm = "npm.cmd" if is_windows else "npm"
+
+# Clean previous build
+if is_windows:
+  subprocess.run(
+    ["cmd", "/c", "if exist dist rmdir /s /q dist"],
     cwd=TYPESCRIPT_PACKAGE,
     check=True,
-    shell=True,
+  )
+else:
+  subprocess.run(
+    ["rm", "-rf", "dist"],
+    cwd=TYPESCRIPT_PACKAGE,
+    check=True,
+  )
+
+# Build npm package
+subprocess.run(
+  [npm, "run", "build"],
+  cwd=TYPESCRIPT_PACKAGE,
+  check=True,
+  shell=is_windows,
 )
 
+# Pack npm package
 subprocess.run(
-    ["npm.cmd", "pack"],
-    cwd=TYPESCRIPT_PACKAGE,
-    check=True,
+  [npm, "pack"],
+  cwd=TYPESCRIPT_PACKAGE,
+  check=True,
+  shell=is_windows,
 )
