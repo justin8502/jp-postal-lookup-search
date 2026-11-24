@@ -5,9 +5,9 @@ export const NOT_LISTED_BELOW_TEXT = "以下に掲載がない場合";
 export const BUILDINGS_AFTER_EXCLUDED = "（次のビルを除く）";
 export const OTHER = "（その他）";
 export const ICHIEN = "一円";
-export const SUFFIX_OPTIONS : Array<string> = ["丁目", "番地", "番", "号"];
+export const SUFFIX_OPTIONS : readonly string[] = ["丁目", "番地", "番", "号"];
 export const PREFECTURE_DIGITS : number = 3;
-export const SPECIAL_NOTES = {
+export const SPECIAL_NOTES: Record<string, string[]> = {
   [BUILDINGS_AFTER_EXCLUDED]: [],
   [OTHER]: [],
   [ICHIEN]: []

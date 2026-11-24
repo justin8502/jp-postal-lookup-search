@@ -1,0 +1,42 @@
+name: Typescript CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-typescript-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            requirements-cicd.txt
+            packages/python/pyproject.toml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: packages/typescript/package-lock.json
+
+      - name: Install TypeScript dependencies
+        working-directory: packages/typescript
+        run: npm ci
+
+      - name: Build Typescript package data
+        run: python scripts/build_typescript.py
+
+      - name: Run Typescript tests
+        working-directory: packages/typescript
+        run: npm run test

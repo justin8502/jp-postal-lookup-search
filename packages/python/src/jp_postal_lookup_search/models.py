@@ -126,7 +126,7 @@ class PostalAddress:
     if not re.fullmatch(MATCH_7_DIGITS, normalized_address): return
     self._init_from_postal_code(normalized_address)
     if not keep_custom:
-      self.update({})
+      self.update_custom({})
 
   def strict_equal(self, address: "PostalAddress"):
 

@@ -1,6 +1,6 @@
 # JP Postal Lookup Search
 [![npm version](https://img.shields.io/npm/v/jp-postal-lookup-search?style=flat-square&logo=npm)](https://www.npmjs.com/package/jp-postal-lookup-search)
-[![Socket Badge](https://badge.socket.dev/npm/package/jp-postal-lookup-search/1.0.0)](https://badge.socket.dev/npm/package/jp-postal-lookup-search/1.0.0)
+![CI/CD](https://github.com/justin8502/jp-postal-lookup-search/actions/workflows/ci-typescript.yml/badge.svg)
 
 ※日本語版が続きます
 

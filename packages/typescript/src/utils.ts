@@ -81,7 +81,7 @@ export function generateAddressesRange(address: string, match: RegExpMatchArray)
 
   let res: Array<string> = [];
 
-  let range = end - start;
+  let range = end - start + 1;
   for (let i = 0; i < range; i++) {
     const matchIndex = match.index ?? 0;
     const stSubStr = substringUnicode(address, 0, matchIndex - 1);

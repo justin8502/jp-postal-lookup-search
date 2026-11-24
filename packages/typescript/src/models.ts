@@ -143,6 +143,7 @@ export class PostalAddress {
   }
 
   private initFromPostalCode(postalCode: string) {
+    this.setDefaultValues();
     this.setPostal(postalCode);
     
     const [prefectureCode, cityTownCode] = splitPostalAddress(postalCode);
@@ -204,7 +205,24 @@ export class PostalAddress {
     index = townResult.i;
     if (townResult.completed && townResult.key && townQueryMapResult) {
       this.initFromPostalCode(townQueryMapResult)
+      return;
     }
     console.warn(SEARCH_FAILED_TOWN)
+  }
+
+  private setDefaultValues() {
+    this.setPostal("");
+
+    this.pref = "";
+    this.city = "";
+    this.town = "";
+    this.street = "";
+    this.building = "";
+
+    this.prefKana = "";
+    this.cityKana = "";
+    this.townKana = "";
+    this.streetKana = "";
+    this.buildingKana = "";
   }
 }

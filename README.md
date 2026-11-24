@@ -11,6 +11,13 @@ Supports partial/incomplete matching, local overrides.
 
 Current package support: Python, Typescript
 
+## CI Status
+
+| Package | Workflow |
+|---|---|
+| Python | ![Python CI](https://github.com/justin8502/jp-postal-lookup-search/actions/workflows/ci-python.yml/badge.svg) |
+| TypeScript | ![TypeScript CI](https://github.com/justin8502/jp-postal-lookup-search/actions/workflows/ci-typescript.yml/badge.svg) |
+
 ---
 
 このプロジェクトでは、郵便番号から住所を検索したり、住所から郵便番号を検索したりできます。
