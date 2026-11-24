@@ -2,12 +2,14 @@
 
 import re
 import time
+from typing import Callable, Iterable, TypeVar
 from jp_postal_lookup_search.find import (
   lookup_address_by_postal_code,
   lookup_address_parts_by_postal_code,
   lookup_address_kana_by_postal_code,
   search_postal_code_by_address,
 )
+T = TypeVar("T")
 
 def test_bulk_postal_lookup():
   postal_codes = ["1000001", "1050022", "1500001", "1600022", "1060032", "2200011",
@@ -173,7 +175,7 @@ def benchmark_lookup_find():
     name="search_postal_code_by_address + lookup_address_by_postal_code"
   )
 
-def print_benchmark_tests(func, inputs, name=None):
+def print_benchmark_tests(func: Callable[[T], object], inputs: Iterable[T], name: str | None = None):
   t_lookup_st = time.time()
   for _ in range(1000):
     for input in inputs:

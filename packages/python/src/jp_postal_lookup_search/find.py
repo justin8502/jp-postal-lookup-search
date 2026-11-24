@@ -2,17 +2,21 @@
 
 from typing import Dict
 
-from .constants import CITY_TOWN_NOT_FOUND, PREFECTURE_NOT_FOUND, STEP_LABELS
-from .types import AddressParts, SpecialNotes
+from .constants import (
+  CITY_TOWN_NOT_FOUND,
+  PREFECTURE_NOT_FOUND,
+  SEARCH_FAILED_CITY,
+  SEARCH_FAILED_PREFECTURE,
+  SEARCH_FAILED_TOWN
+)
+from .types import AddressParts
 from .data import postal_code_map, address_map
 from .utils import (
-  extract_query_positional_arguments,
-  normalize_strip_fill,
   normalize_postal_code,
+  search_city,
+  search_town,
   split_postal_address,
-  search_special_notes,
-  has_ichien,
-  search_ichien_other,
+  search_prefecture,
 )
 
 def lookup_address_by_postal_code(postal_code: str) -> str:
@@ -39,7 +43,6 @@ def lookup_address_parts_by_postal_code(postal_code: str) -> AddressParts:
     "pref": "",
     "city": "",
     "town": "",
-
     "pref_kana": "",
     "city_kana": "",
     "town_kana": ""
@@ -74,7 +77,7 @@ def lookup_address_parts_by_postal_code(postal_code: str) -> AddressParts:
 def lookup_address_kana_by_postal_code(postal_code: str) -> str:
   postal_code = normalize_postal_code(postal_code)
   prefecture_code, city_town_code = split_postal_address(postal_code)
-  prefecture_data: Dict[str, str] = postal_code_map.get(prefecture_code)
+  prefecture_data = postal_code_map.get(prefecture_code)
   
   if prefecture_data is None:
       return PREFECTURE_NOT_FOUND
@@ -91,49 +94,18 @@ def lookup_address_kana_by_postal_code(postal_code: str) -> str:
 
 def search_postal_code_by_address(address: str) -> str:
   query_map = address_map
-  # step: 0-prefecture 1-city 2-town
-  step = 0
   i = 0
 
-  special_notes: SpecialNotes = {
-    "（次のビルを除く）": [],
-    "（その他）": [],
-    "一円": []
-  }
+  i, key, _completed = search_prefecture(i, query_map, address)
+  if (i >= len(address) or not key): return SEARCH_FAILED_PREFECTURE
 
-  # Use a sliding window approach + lenient matches
-  while i < len(address): 
-    # narrow the query by only checking keys that match the first character of target substring.
-    # this significantly speeds up performance, with no loss in accuracy.
-    keys_matching_address_first_char: list[str] = [key for key in query_map if key[0] == address[i]]
-    for key in keys_matching_address_first_char:
-      [
-        _normalized_query,
-        stripped_query,
-        normalized_key,
-        stripped_key
-      ] = normalize_strip_fill(address[i:i+len(key)], key, special_notes)
+  pref_map = query_map[key]
 
-      # For town matches, explode number ranges and do fuzzy matching
-      # e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
-      if step == 2:
-        if has_ichien(stripped_key):
-          return query_map[key]
-        range_selection_expanded_keys = extract_query_positional_arguments(normalized_key)
-        for stripped_key in range_selection_expanded_keys:
-          if stripped_query.startswith(stripped_key) or stripped_key.startswith(stripped_query):
-            return query_map[key]
-      elif stripped_key.startswith(stripped_query):
-        query_map = query_map[key]
-        step += 1
-        i += len(key)
-        break
-    else:
-      special_note = search_special_notes(address, i, special_notes, query_map)
-      if special_note: return special_note
-      i += 1
+  i, key, _completed = search_city(i, pref_map, address)
+  if (i >= len(address) or not key): return SEARCH_FAILED_CITY
 
-  ichien_other = search_ichien_other(step, query_map)
-  if ichien_other: return ichien_other
+  city_map = pref_map[key]
 
-  return f"郵便番号を検索できません。検索ステージ：{STEP_LABELS[step]}"
+  i, key, completed = search_town(i, city_map, address)
+  if completed and key: return city_map[key]
+  return SEARCH_FAILED_TOWN

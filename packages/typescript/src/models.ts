@@ -1,17 +1,14 @@
 // This module defines the PostalAddress class.
 
-import { MATCH_7_DIGITS, STEP_LABELS } from "./constants";
+import { MATCH_7_DIGITS, SEARCH_FAILED_CITY, SEARCH_FAILED_PREFECTURE, SEARCH_FAILED_TOWN } from "./constants";
 import { postalCodeLookupData, addressLookupData } from "./data";
-import { CityMap, QueryMap, SpecialNotes, TownMap } from "./types";
+import { CityMap, TownMap } from "./types";
 import { 
-  extractQueryPositionalArguments,
-  hasIchien,
   normalizePostalCode,
-  normalizeStripFill,
-  searchIchienOther,
-  searchSpecialNotes,
+  searchCity,
+  searchPrefecture,
+  searchTown,
   splitPostalAddress,
-  substringUnicode
 } from "./utils";
 
 interface PostalAddressCustom {
@@ -146,6 +143,7 @@ export class PostalAddress {
   }
 
   private initFromPostalCode(postalCode: string) {
+    this.setDefaultValues();
     this.setPostal(postalCode);
     
     const [prefectureCode, cityTownCode] = splitPostalAddress(postalCode);
@@ -181,100 +179,50 @@ export class PostalAddress {
   }
   
   private initFromAddress(address: string) {
-    let queryMap: QueryMap = addressLookupData;
-    // step: 0-prefecture 1-city 2-town
-    let step = 0;
-    let i = 0;
+    const queryMap = addressLookupData;
+    let index = 0;
   
-    let specialNotes: SpecialNotes = {
-      "（次のビルを除く）": [],
-      "（その他）": [],
-      "一円": []
-    };
-
-    // Use a sliding window approach + lenient matches
-    while (i < address.length) {
-      // narrow the query by only checking keys that match the first character of target substring.
-      // this significantly speeds up performance, with no loss in accuracy.
-      const keysMatchingAddressFirstChar = Object.keys(queryMap).filter((key) => {
-        return key[0] === address[i];
-      })
-      let loopCompleted = false;
-      for (const key of keysMatchingAddressFirstChar) {
-        const addressSubStr = substringUnicode(address, i, i + key.length);
-        const [
-          _normalizedQuery,
-          strippedQuery,
-          normalizedKey,
-          strippedKey
-        ] = normalizeStripFill(addressSubStr, key, specialNotes);
-        // For town matches, explode number ranges and do fuzzy matching
-        // e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
-        if (step === 2) {
-          if (hasIchien(strippedKey)) {
-            this.processStep(step, key);
-            const townMap = queryMap as TownMap;
-            this.initFromPostalCode(townMap[key] ?? "");
-            return;
-          }
-          const rangeSelectionExpandedKeys = extractQueryPositionalArguments(normalizedKey);
-          for (const strippedExpandedKey of rangeSelectionExpandedKeys) {
-            if (strippedQuery.startsWith(strippedExpandedKey) || strippedExpandedKey.startsWith(strippedQuery)) {
-              const townMap = queryMap as TownMap;
-              this.initFromPostalCode(townMap[key] ?? "");
-              return;
-            }
-          }
-        } else if (strippedKey.startsWith(strippedQuery)) {
-          if (step === 0) {
-            queryMap = queryMap[key] as CityMap;
-          } else if (step === 1) {
-            queryMap = queryMap[key] as TownMap;
-          }
-          step += 1;
-          loopCompleted = true;
-          i += (key.length - 1);
-          break;
-        }
-      }
-      if (!loopCompleted) {
-        const specialNote = searchSpecialNotes(
-          address,
-          i,
-          specialNotes,
-          step === 2 ? queryMap as TownMap : {}
-        );
-        if (specialNote) {
-          this.initFromPostalCode(specialNote);
-          return;
-        }
-        i += 1;
-      }
+    const prefectureResult = searchPrefecture(index, queryMap, address);
+    const prefectureQueryMapResult = queryMap[prefectureResult.key || ""];
+    index = prefectureResult.i;
+    if (prefectureResult.i >= address.length || !prefectureResult.key || !prefectureQueryMapResult) {
+      console.warn(SEARCH_FAILED_PREFECTURE)
+      return;
     }
+    const cityMap: CityMap = prefectureQueryMapResult;
   
-    if (step === 2) {
-      const ichienOther = searchIchienOther(step, queryMap as TownMap);
-      if (ichienOther) {
-        this.initFromPostalCode(ichienOther);
-        return;
-      }
+    const cityResult = searchCity(index, cityMap, address);
+    const cityQueryMapResult = cityMap[cityResult.key || ""];
+    index = cityResult.i;
+    if (cityResult.i >= address.length || !cityResult.key || !cityQueryMapResult) {
+      console.warn(SEARCH_FAILED_CITY)
+      return;
     }
-
-    console.warn(`郵便番号を検索できません。検索ステージ：${STEP_LABELS[step]}`);
+    const townMap: TownMap = cityQueryMapResult;
+  
+    const townResult = searchTown(index, townMap, address);
+    const townQueryMapResult = townMap[townResult.key || ""];
+    index = townResult.i;
+    if (townResult.completed && townResult.key && townQueryMapResult) {
+      this.initFromPostalCode(townQueryMapResult)
+      return;
+    }
+    console.warn(SEARCH_FAILED_TOWN)
   }
 
-  private processStep(step: number, value: string): void {
-    // Load Partials
-    switch(step) {
-      case 0:
-        this.pref = value;
-        break;
-      case 1:
-        this.city = value;
-        break;
-      case 2:
-        this.town = value;
-        break;
-    }
+  private setDefaultValues() {
+    this.setPostal("");
+
+    this.pref = "";
+    this.city = "";
+    this.town = "";
+    this.street = "";
+    this.building = "";
+
+    this.prefKana = "";
+    this.cityKana = "";
+    this.townKana = "";
+    this.streetKana = "";
+    this.buildingKana = "";
   }
 }

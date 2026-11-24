@@ -10,9 +10,20 @@ import {
   MATCH_COMMA_REGEX,
   MATCH_DASH_REGEX,
   MATCH_POSTAL_SYMBOL_REGEX,
-  MATCH_ICHI_EN
+  MATCH_ICHI_EN,
+  BUILDINGS_AFTER_EXCLUDED,
+  OTHER,
+  SPECIAL_NOTES,
+  NOT_LISTED_BELOW_TEXT
 } from "./constants";
-import { SpecialNotes } from "./types";
+import { 
+  PrefMap,
+  CityMap,
+  TownMap,
+  NormalizedAddress,
+  SearchReturn,
+  SpecialNotes
+} from "./types";
 
 export function extractQueryPositionalArguments(address: string): Array<string> {
   if (address.includes(EXCLUSION_TEXT)) return [address];
@@ -70,7 +81,7 @@ export function generateAddressesRange(address: string, match: RegExpMatchArray)
 
   let res: Array<string> = [];
 
-  let range = end - start;
+  let range = end - start + 1;
   for (let i = 0; i < range; i++) {
     const matchIndex = match.index ?? 0;
     const stSubStr = substringUnicode(address, 0, matchIndex - 1);
@@ -114,10 +125,9 @@ export function searchSpecialNotes(
   address: string,
   i: number,
   specialNotes: SpecialNotes,
-  queryMap: {[key: string]: string}
-): string {
+): string | undefined {
   // Explicit Typing
-  const specialNoteEntries = Object.entries(specialNotes) as [keyof SpecialNotes, string[]][];
+  const specialNoteEntries = Object.entries(specialNotes) as [string, string[]][];
   for (const [note, finalKeys] of specialNoteEntries) {
     for (const finalKey of finalKeys) {
       const targetAddrSt = i;
@@ -125,46 +135,44 @@ export function searchSpecialNotes(
       const addresSubStr = substringUnicode(address, targetAddrSt, targetAddrEnd);
       const normalizedQuery = normalize(addresSubStr);
       if (normalizedQuery + note === finalKey) {
-        return queryMap[finalKey] || "";
+        return finalKey;
       }
     }
   }
-  return "";
+  return undefined;
 };
 
-export function searchIchienOther(step: number, queryMap: {[key: string]: string}): string {
-  if (step == 2) {
-    if (Object.keys(queryMap).length == 1) {
-      const queryMapKey = Object.keys(queryMap)[0] || "";
-      const queryMapValue = Object.values(queryMap)[0] || "";
-      if (hasIchien(queryMapKey)) {
-        return queryMapValue;
-      }
+export function searchIchienOther(townMap: TownMap): string | undefined {
+  if (Object.keys(townMap).length == 1) {
+    const queryMapKey = Object.keys(townMap)[0] || "";
+    const queryMapValue = Object.values(townMap)[0] || "";
+    if (hasIchien(queryMapKey)) {
+      return queryMapValue;
     }
-    return queryMap["以下に掲載がない場合"] || "";
   }
-  return "";
+  if (Object.keys(townMap).includes(NOT_LISTED_BELOW_TEXT)) {
+    return NOT_LISTED_BELOW_TEXT
+  }
+  return undefined;
 };
 
 export function normalizeStripFill(
   addressSubStr: string,
-  key: string,
-  specialNotes: SpecialNotes
-): [string, string, string, string] {
+  key: string
+): NormalizedAddress {
   // Normalize -> Fix -/(/)/[0-9]
   // Strip -> Remove ()
   const normalizedQuery = normalize(addressSubStr);
   const strippedQuery = stripParen(normalizedQuery);
   const normalizedKey = normalize(key);
   const strippedKey = stripParen(normalizedKey);
-  if (key.includes("（次のビルを除く）")) {
-    specialNotes["（次のビルを除く）"].push(key);
-  }
-  if (key.includes("（その他）")) {
-    specialNotes["（その他）"].push(key);
-  }
 
-  return [normalizedQuery, strippedQuery, normalizedKey, strippedKey];
+  return {
+    "normalizedQuery": normalizedQuery,
+    "strippedQuery": strippedQuery,
+    "normalizedKey": normalizedKey,
+    "strippedKey": strippedKey
+  };
 };
 
 export function substringUnicode(
@@ -183,4 +191,107 @@ export function assert(
     const errorMsg = message || "Error: Mismatch found.";
     throw new Error(errorMsg);
   }
+}
+
+export function searchPrefecture(i: number, prefMap: PrefMap, address: string): SearchReturn {
+  return searchSimpleMap(i, prefMap, address);
+}
+
+export function searchCity(i: number, cityMap: CityMap, address: string): SearchReturn {
+  return searchSimpleMap(i, cityMap, address);
+}
+
+export function searchTown(i: number, townMap: TownMap, address: string): SearchReturn {
+  let specialNotes: SpecialNotes = Object.fromEntries(
+    Object.entries(SPECIAL_NOTES).map(([key, value]) => [key, [...value]])
+  );
+
+  while (i < address.length) {
+    for (const key of Object.keys(townMap)) {
+      if (key && key[0] == address[i]) {
+        const addressSubStr = substringUnicode(address, i, i + key.length);
+        const {
+          normalizedKey,
+          strippedQuery,
+          strippedKey
+        } = normalizeStripFill(addressSubStr, key);
+        specialNotes = updateSpecialNotes(key, specialNotes);
+
+        if (hasIchien(strippedKey)) {
+          i += key.length;
+          return searchResult(i, key, true);
+        }
+
+        const rangeSelectionExpandedKeys = extractQueryPositionalArguments(normalizedKey);
+        for (const strippedExpandedKey of rangeSelectionExpandedKeys) {
+          if (strippedQuery.startsWith(strippedExpandedKey) || strippedExpandedKey.startsWith(strippedQuery)) {
+            i += key.length;
+            return searchResult(i, key, true);
+          }
+        }
+      }
+    }
+    const specialNote = searchSpecialNotes(address, i, specialNotes);
+    if (specialNote) {
+      i += specialNote.length;
+      return searchResult(i, specialNote, true);
+    }
+    i += 1;
+  }
+
+  const ichienOther = searchIchienOther(townMap);
+  if (ichienOther) {
+    i += ichienOther.length
+    return searchResult(i, ichienOther, true);
+  }
+  return searchResult(i, undefined, false);
+}
+
+function updateSpecialNotes(
+  key: string,
+  specialNotes: SpecialNotes,
+) : SpecialNotes {
+  const updatedNotes = { ...specialNotes };
+  for (const note of [BUILDINGS_AFTER_EXCLUDED, OTHER]) {
+    if (key.includes(note) && !specialNotes[note]?.includes(key)) {
+      updatedNotes[note] = [...(specialNotes[note] ?? []), key];
+    }
+  }
+  return updatedNotes;
+}
+
+function searchSimpleMap(
+  i: number,
+  queryMap: PrefMap | CityMap,
+  address: string
+) : SearchReturn {
+  while (i < address.length) {
+    for (const key of Object.keys(queryMap)) {
+      if (key && key[0] == address[i]) {
+        const addressSubStr = substringUnicode(address, i, i + key.length);
+        const {
+          strippedQuery,
+          strippedKey
+        } = normalizeStripFill(addressSubStr, key);
+        if (strippedKey.startsWith(strippedQuery)) {
+          i += key.length;
+          return searchResult(i, key, false);
+        }
+      }
+    }
+    i += 1;
+  }
+  return searchResult(i);
+}
+
+function searchResult(
+  i: number,
+  key?: string,
+  completed: boolean = false
+): SearchReturn {
+  return {
+    i: i,
+    key: key,
+    completed: completed
+  };
 }

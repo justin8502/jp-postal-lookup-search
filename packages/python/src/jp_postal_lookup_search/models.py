@@ -1,18 +1,17 @@
 """This module defines the PostalAddress class."""
 
 import re
+from typing import Any
 import warnings
 
-from .types import PostalAddressCustom, SpecialNotes
-from .constants import MATCH_7_DIGITS, STEP_LABELS
+from .types import PostalAddressCustom
+from .constants import MATCH_7_DIGITS, SEARCH_FAILED_CITY, SEARCH_FAILED_PREFECTURE, SEARCH_FAILED_TOWN
 from .data import postal_code_map, address_map
 from .utils import (
-  extract_query_positional_arguments,
-  normalize_strip_fill,
   normalize_postal_code,
-  has_ichien,
-  search_ichien_other,
-  search_special_notes,
+  search_city,
+  search_prefecture,
+  search_town,
   split_postal_address
 )
 
@@ -30,7 +29,7 @@ class PostalAddress:
     # Custom acts as a mask, but does not change the underlying properties.
     # This allows us to manipulate custom independently from the data
     # loaded from address/postal/code
-    self._custom = custom or {}
+    self._custom = custom
 
   @property
   def postal_code(self):
@@ -38,22 +37,40 @@ class PostalAddress:
 
   @property
   def kana(self):
+    if (self._custom):
+      return (
+        (self._custom.get("pref_kana") or self.pref_kana) +
+        (self._custom.get("city_kana") or self.city_kana) +
+        (self._custom.get("town_kana") or self.town_kana) +
+        (self._custom.get("street_kana") or self.street_kana) +
+        (self._custom.get("building_kana") or self.building_kana)
+      )
+
     return (
-      (self._custom.get("pref_kana") or self.pref_kana or "") +
-      (self._custom.get("city_kana") or self.city_kana or "") +
-      (self._custom.get("town_kana") or self.town_kana or "") +
-      (self._custom.get("street_kana") or self.street_kana or "") +
-      (self._custom.get("building_kana") or self.building_kana or "")
+      self.pref_kana +
+      self.city_kana +
+      self.town_kana +
+      self.street_kana +
+      self.building_kana
     )
 
   @property
-  def address(self):
+  def address(self) -> str:
+    if (self._custom):
+      return (
+        (self._custom.get("pref") or self.pref) +
+        (self._custom.get("city") or self.city) +
+        (self._custom.get("town") or self.town) +
+        (self._custom.get("street") or self.street) +
+        (self._custom.get("building") or self.building)
+      )
+
     return (
-      (self._custom.get("pref") or self.pref or "") +
-      (self._custom.get("city") or self.city or "") +
-      (self._custom.get("town") or self.town or "") +
-      (self._custom.get("street") or self.street or "") +
-      (self._custom.get("building") or self.building or "")
+      self.pref +
+      self.city +
+      self.town +
+      self.street +
+      self.building
     )
 
   def update(self, values: PostalAddressCustom):
@@ -73,13 +90,13 @@ class PostalAddress:
     postal_address_custom_keys = ["pref", "city", "town", "street", "building",
                                   "pref_kana", "city_kana", "town_kana", "street_kana", "building_kana"]
 
-    updated_custom = {}
+    updated_custom: PostalAddressCustom = {}
     for key in postal_address_custom_keys:
       if key in custom and custom[key]:
         updated_custom[key] = custom[key]
     self._custom = updated_custom
 
-  def set_postal(self, postal_code):
+  def set_postal(self, postal_code: str):
     self._postal_code = postal_code
 
   def reload(self, keep_custom: bool = True):
@@ -109,11 +126,9 @@ class PostalAddress:
     if not re.fullmatch(MATCH_7_DIGITS, normalized_address): return
     self._init_from_postal_code(normalized_address)
     if not keep_custom:
-      self.update({})
+      self.update_custom({})
 
-  def strict_equal(self, address):
-    if not isinstance(address, PostalAddress):
-      return False
+  def strict_equal(self, address: "PostalAddress"):
 
     return (
       self.postal_code == address.postal_code
@@ -155,12 +170,15 @@ class PostalAddress:
       prefecture_code, city_town_code = split_postal_address(postal_code)
       prefecture_data = postal_code_map.get(prefecture_code)
 
-      raw_pref = prefecture_data.get("prefecture")
+      if prefecture_data is None:
+        return
+      
+      raw_pref = prefecture_data.get("prefecture") or ""
       pref, pref_kana = raw_pref.split("|")
       self.pref = pref
       self.pref_kana = pref_kana
 
-      raw_city_town = prefecture_data.get(city_town_code)
+      raw_city_town = prefecture_data.get(city_town_code) or ""
       city, town, city_kana, town_kana = raw_city_town.split("|")
       self.city = city
       self.town = town
@@ -172,72 +190,31 @@ class PostalAddress:
 
   def _init_from_address(self, address: str):
     query_map = address_map
-    # step: 0-prefecture 1-city 2-town
-    step = 0
     i = 0
 
-    special_notes: SpecialNotes = {
-      "（次のビルを除く）": [],
-      "（その他）": [],
-      "一円": []
-    }
-
-    # Use a sliding window approach + lenient matches
-    while i < len(address): 
-      # narrow the query by only checking keys that match the first character of target substring.
-      # this significantly speeds up performance, with no loss in accuracy.
-      keys_matching_address_first_char: list[str] = [key for key in query_map if key[0] == address[i]]
-      for key in keys_matching_address_first_char:
-        [
-          _normalized_query,
-          stripped_query,
-          normalized_key,
-          stripped_key
-        ] = normalize_strip_fill(address[i:i+len(key)], key, special_notes)
-
-        # For town matches, explode number ranges and do fuzzy matching
-        # e.g. 宮崎県日南市吾田東（５～１１丁目） -> 宮崎県日南市吾田東５丁目, 宮崎県日南市吾田東６丁目...
-        if step == 2:
-          if has_ichien(stripped_key):
-            self._process_step(step, key)
-            self._init_from_postal_code(query_map[key])
-            return
-          range_selection_expanded_keys = extract_query_positional_arguments(normalized_key)
-          for stripped_key in range_selection_expanded_keys:
-            if stripped_query.startswith(stripped_key) or stripped_key.startswith(stripped_query):
-              self._init_from_postal_code(query_map[key])
-              return
-        elif stripped_key.startswith(stripped_query):
-          query_map = query_map[key]
-          self._process_step(step, key)
-          step += 1
-          i += len(key)
-          break
-      else:
-        special_note = search_special_notes(address, i, special_notes, query_map)
-        if special_note:
-          self._init_from_postal_code(special_note)
-          return
-        i += 1
-
-    ichien_other = search_ichien_other(step, query_map)
-    if ichien_other:
-      self._init_from_postal_code(ichien_other)
+    i, key, _completed = search_prefecture(i, query_map, address)
+    if (i >= len(address) or not key):
+      warnings.warn(SEARCH_FAILED_PREFECTURE, stacklevel=2)
       return
 
-    warnings.warn(f"郵便番号を検索できません。検索ステージ：{STEP_LABELS[step]}", stacklevel=2)
+    pref_map = query_map[key]
 
-  def _process_step(self, step: int, value: str):
-    # Load Partials
-    match step:
-      case 0:
-        self.pref = value
-      case 1:
-        self.city = value
-      case 2:
-        self.town = value
+    i, key, _completed = search_city(i, pref_map, address)
+    if (i >= len(address) or not key):
+      warnings.warn(SEARCH_FAILED_CITY, stacklevel=2)
+      return
 
-  def __eq__(self, address):
+    city_map = pref_map[key]
+
+    i, key, completed = search_town(i, city_map, address)
+    if completed and key:
+      self._init_from_postal_code(city_map[key])
+      return
+
+    warnings.warn(SEARCH_FAILED_TOWN, stacklevel=2)
+    return
+
+  def __eq__(self, address: Any):
     if not isinstance(address, PostalAddress):
       return NotImplemented
     return self.postal_code == address.postal_code
