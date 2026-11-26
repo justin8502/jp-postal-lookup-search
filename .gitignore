@@ -13,3 +13,7 @@
 /packages/typescript/*.tsbuildinfo
 /packages/typescript/src/data
 /packages/typescript/src/dist
+
+# ruby
+/packages/ruby/.rspec_status
+/packages/ruby/lib/jp_postal_lookup_search/data/
